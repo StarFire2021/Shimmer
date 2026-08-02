@@ -1,0 +1,17 @@
+<Window x:Class="Shimmer.Windows.LooseLayerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Shimmer Desktop"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ShowInTaskbar="False"
+        ResizeMode="NoResize"
+        SizeToContent="Manual"
+        Topmost="False"
+        UseLayoutRounding="True">
+    <!-- Background="Transparent" => fully-transparent (alpha 0) empty areas are
+         click-through, so the desktop's right-click menu still works. Tiles use a
+         low-but-nonzero-alpha background so they remain clickable/draggable. -->
+    <Canvas x:Name="Root" Background="{x:Null}" />
+</Window>

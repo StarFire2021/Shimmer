@@ -1,0 +1,25 @@
+# Build output
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# Rider
+.idea/
+
+# App data written at runtime (also lives in %AppData%\Shimmer)
+*.log
+
+# Installer build output (compiled Setup.exe is a build artifact)
+installer/Output/
+
+# Publish output
+publish/
+*.publishproj
