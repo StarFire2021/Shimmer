@@ -56,7 +56,7 @@ public sealed class DesktopListView : IDisposable
     // ListView's client origin is the top-left of the virtual screen (which can
     // be negative with monitors arranged above/left of the primary). These two
     // helpers convert between an icon's view coordinates and true screen pixels,
-    // so a fence's on-screen rectangle can be compared against — and used to
+    // so a pool's on-screen rectangle can be compared against — and used to
     // place — real icons.
 
     /// <summary>View (icon) coordinates -> screen pixels.</summary>

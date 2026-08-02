@@ -8,7 +8,7 @@ namespace Shimmer.Windows;
 
 /// <summary>
 /// A small translucent icon that follows the cursor while a tile is being
-/// dragged, giving Fences-like visual feedback. It's a topmost, click-through
+/// dragged, giving clear visual feedback while dragging. It's a topmost, click-through
 /// layered window positioned in physical pixels (so no DPI math), updated from
 /// the tile's drag-feedback events.
 /// </summary>

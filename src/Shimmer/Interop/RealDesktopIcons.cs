@@ -4,7 +4,7 @@ namespace Shimmer.Interop;
 
 /// <summary>
 /// Hides and restores the *real* Windows desktop icon layer. This is the key to
-/// the Fences-style model: rather than shoving Explorer's icons around (which it
+/// the whole approach: rather than shoving Explorer's icons around (which it
 /// keeps snapping back), we simply stop Explorer from drawing them and render our
 /// own tiles instead.
 ///

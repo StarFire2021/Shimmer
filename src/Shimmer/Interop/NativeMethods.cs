@@ -13,7 +13,7 @@ namespace Shimmer.Interop;
 /// dereferenced inside explorer's address space — not ours. So to read or move a
 /// desktop icon we have to allocate a scratch buffer inside explorer, poke our
 /// request into it, SendMessage, then read explorer's reply back out. That is the
-/// whole trick behind a Fences-style app.
+/// whole trick behind Shimmer's desktop-icon interop.
 /// </summary>
 internal static class NativeMethods
 {
@@ -74,7 +74,7 @@ internal static class NativeMethods
     // Translate between a window's client space and screen space. The desktop
     // ListView's client origin is the top-left of the *virtual* screen, which is
     // not (0,0) on multi-monitor setups, so these are essential for mapping a
-    // fence's screen rectangle onto icon coordinates.
+    // pool's screen rectangle onto icon coordinates.
     [DllImport("user32.dll", SetLastError = true)]
     internal static extern bool ClientToScreen(IntPtr hWnd, ref POINT lpPoint);
 
@@ -115,7 +115,7 @@ internal static class NativeMethods
     [DllImport("kernel32.dll", SetLastError = true)]
     internal static extern bool CloseHandle(IntPtr hObject);
 
-    // ---- Window positioning (used to pin fence windows to the desktop) ----
+    // ---- Window positioning (used to pin pool windows to the desktop) ----
 
     [DllImport("user32.dll", SetLastError = true)]
     internal static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter,

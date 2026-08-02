@@ -1,7 +1,7 @@
-<Window x:Class="Shimmer.Windows.FenceWindow"
+<Window x:Class="Shimmer.Windows.PoolWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Fence"
+        Title="Pool"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
@@ -30,7 +30,7 @@
                     <Separator />
                     <MenuItem Header="Appearance…" Click="Appearance_Click" />
                     <MenuItem Header="Rename…" Click="Rename_Click" />
-                    <MenuItem Header="Delete fence" Click="Delete_Click" />
+                    <MenuItem Header="Delete pool" Click="Delete_Click" />
                 </ContextMenu>
             </Border.ContextMenu>
 
@@ -39,7 +39,7 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBlock x:Name="TitleText" Grid.Column="0" Text="Fence"
+                <TextBlock x:Name="TitleText" Grid.Column="0" Text="Pool"
                            Foreground="#F0F3F8" FontSize="13" FontWeight="SemiBold"
                            VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
@@ -59,7 +59,7 @@
 
         <Grid x:Name="BodyHost" Grid.Row="1">
             <!-- Tinted container; holds our own tiles. Background is set in code
-                 from the fence color + opacity. Accepts item drops. -->
+                 from the pool color + opacity. Accepts item drops. -->
             <Border x:Name="Body" CornerRadius="0,0,10,10"
                     AllowDrop="True" Drop="Body_Drop" DragOver="Body_DragOver">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="6"

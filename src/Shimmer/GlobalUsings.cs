@@ -1,5 +1,5 @@
 // Shimmer enables BOTH WPF (UseWPF) and WinForms (UseWindowsForms) — WPF for the
-// fence windows, WinForms only for the tray NotifyIcon and cursor position. With
+// pool windows, WinForms only for the tray NotifyIcon and cursor position. With
 // ImplicitUsings on, that pulls in both System.Windows.* and System.Windows.Forms.*
 // as global namespaces, so a bare type name like `Button` or `Point` becomes
 // ambiguous.

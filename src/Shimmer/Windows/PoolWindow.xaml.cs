@@ -15,43 +15,44 @@ using WinFormsCursor = System.Windows.Forms.Cursor;
 namespace Shimmer.Windows;
 
 /// <summary>
-/// A fence: a tinted container window that renders its member items as tiles.
-/// Supports drag-in / drag-out (drops), resize, color/opacity, and whole-fence
-/// hide-until-hover (the entire window vanishes until the cursor enters its area).
+/// A pool: a tinted container window that renders its member items as tiles.
+/// Supports drag-in / drag-out (drops), resize, color/opacity, roll-up, and
+/// whole-pool hide-until-hover (the entire window vanishes until the cursor
+/// enters its area).
 /// </summary>
-public partial class FenceWindow : Window
+public partial class PoolWindow : Window
 {
     private const double TitleHeight = 34;
     private const double MinWidth_ = 180;
     private const double MinHeight_ = 130;
 
-    private readonly Fence _fence;
-    private readonly FenceManager _manager;
+    private readonly Pool _pool;
+    private readonly PoolManager _manager;
     private readonly IDesktopCoordinator _coord;
     private readonly IntPtr _looseHwnd;
     private readonly DispatcherTimer _hoverTimer;
     private Rect _screenRectPx;
 
-    public Fence Fence => _fence;
+    public Pool Pool => _pool;
 
-    public FenceWindow(Fence fence, FenceManager manager, IDesktopCoordinator coord, IntPtr looseHwnd)
+    public PoolWindow(Pool pool, PoolManager manager, IDesktopCoordinator coord, IntPtr looseHwnd)
     {
         InitializeComponent();
-        _fence = fence;
+        _pool = pool;
         _manager = manager;
         _coord = coord;
         _looseHwnd = looseHwnd;
 
-        Left = fence.Left;
-        Top = fence.Top;
-        Width = fence.Width;
-        Height = fence.Height;
-        TitleText.Text = fence.Title;
+        Left = pool.Left;
+        Top = pool.Top;
+        Width = pool.Width;
+        Height = pool.Height;
+        TitleText.Text = pool.Title;
 
         _hoverTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(120) };
         _hoverTimer.Tick += HoverTimer_Tick;
 
-        Loaded += FenceWindow_Loaded;
+        Loaded += PoolWindow_Loaded;
     }
 
     // ---- Plumbing ---------------------------------------------------------
@@ -66,7 +67,7 @@ public partial class FenceWindow : Window
         SetWindowPos(hwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
     }
 
-    // Keep the fence pinned directly above the loose layer (and thus below all
+    // Keep the pool pinned directly above the loose layer (and thus below all
     // real app windows) whenever the z-order changes.
     private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
@@ -80,14 +81,14 @@ public partial class FenceWindow : Window
         return IntPtr.Zero;
     }
 
-    private void FenceWindow_Loaded(object sender, RoutedEventArgs e)
+    private void PoolWindow_Loaded(object sender, RoutedEventArgs e)
     {
         ApplyAppearance();
         Rebuild();
-        AutoHideMenuItem.IsChecked = _fence.AutoHide;
+        AutoHideMenuItem.IsChecked = _pool.AutoHide;
         ApplyRolled();
         UpdateScreenRect();
-        if (_fence.AutoHide)
+        if (_pool.AutoHide)
         {
             _hoverTimer.Start();
             if (!CursorInside()) Visibility = Visibility.Hidden;
@@ -105,7 +106,7 @@ public partial class FenceWindow : Window
     public void Rebuild()
     {
         Tiles.Children.Clear();
-        foreach (var item in _coord.MembersOf(_fence))
+        foreach (var item in _coord.MembersOf(_pool))
             Tiles.Children.Add(new DesktopTile(item, _coord));
     }
 
@@ -113,8 +114,8 @@ public partial class FenceWindow : Window
     {
         try
         {
-            var c = (Color)ColorConverter.ConvertFromString(_fence.Color);
-            byte a = (byte)(Math.Clamp(_fence.Opacity, 0, 1) * 255);
+            var c = (Color)ColorConverter.ConvertFromString(_pool.Color);
+            byte a = (byte)(Math.Clamp(_pool.Opacity, 0, 1) * 255);
             Body.Background = new SolidColorBrush(Color.FromArgb(a, c.R, c.G, c.B));
             TitleBar.Background = new SolidColorBrush(c);
         }
@@ -143,7 +144,7 @@ public partial class FenceWindow : Window
 
     private void Roll_Click(object sender, RoutedEventArgs e)
     {
-        _fence.RolledUp = !_fence.RolledUp;
+        _pool.RolledUp = !_pool.RolledUp;
         ApplyRolled();
         _manager.Save();
     }
@@ -151,10 +152,10 @@ public partial class FenceWindow : Window
     /// <summary>Collapse to just the title bar (rolled up) or restore the body.</summary>
     private void ApplyRolled()
     {
-        BodyHost.Visibility = _fence.RolledUp ? Visibility.Collapsed : Visibility.Visible;
-        Height = _fence.RolledUp ? TitleHeight : _fence.Height;
-        RollMenuItem.IsChecked = _fence.RolledUp;
-        RollButton.Content = _fence.RolledUp ? "▸" : "▾";
+        BodyHost.Visibility = _pool.RolledUp ? Visibility.Collapsed : Visibility.Visible;
+        Height = _pool.RolledUp ? TitleHeight : _pool.Height;
+        RollMenuItem.IsChecked = _pool.RolledUp;
+        RollButton.Content = _pool.RolledUp ? "▸" : "▾";
         UpdateScreenRect();
     }
 
@@ -162,11 +163,11 @@ public partial class FenceWindow : Window
 
     private void AutoHide_Click(object sender, RoutedEventArgs e)
     {
-        _fence.AutoHide = !_fence.AutoHide;
-        AutoHideMenuItem.IsChecked = _fence.AutoHide;
+        _pool.AutoHide = !_pool.AutoHide;
+        AutoHideMenuItem.IsChecked = _pool.AutoHide;
         _manager.Save();
 
-        if (_fence.AutoHide)
+        if (_pool.AutoHide)
         {
             UpdateScreenRect();
             _hoverTimer.Start();
@@ -181,14 +182,14 @@ public partial class FenceWindow : Window
 
     private void HoverTimer_Tick(object? sender, EventArgs e)
     {
-        if (!_fence.AutoHide) { _hoverTimer.Stop(); return; }
+        if (!_pool.AutoHide) { _hoverTimer.Stop(); return; }
 
         if (CursorInside())
         {
             if (Visibility != Visibility.Visible)
             {
                 // Visibility.Hidden preserves z-order, so no re-sink needed — the
-                // fence returns exactly where it was (above the loose layer).
+                // pool returns exactly where it was (above the loose layer).
                 Visibility = Visibility.Visible;
                 UpdateScreenRect();
             }
@@ -206,8 +207,8 @@ public partial class FenceWindow : Window
         if (e.ButtonState != MouseButtonState.Pressed) return;
         try { DragMove(); } catch (InvalidOperationException) { return; }
 
-        _fence.Left = Left;
-        _fence.Top = Top;
+        _pool.Left = Left;
+        _pool.Top = Top;
         UpdateScreenRect();
         _manager.Save();
     }
@@ -215,8 +216,8 @@ public partial class FenceWindow : Window
     protected override void OnLocationChanged(EventArgs e)
     {
         base.OnLocationChanged(e);
-        _fence.Left = Left;
-        _fence.Top = Top;
+        _pool.Left = Left;
+        _pool.Top = Top;
         if (IsLoaded) UpdateScreenRect();
     }
 
@@ -232,7 +233,7 @@ public partial class FenceWindow : Window
     {
         if (e.Data.GetDataPresent(DragFormats.Item) && e.Data.GetData(DragFormats.Item) is string path)
         {
-            _coord.DropToFence(path, _fence);
+            _coord.DropToPool(path, _pool);
             e.Handled = true;
         }
     }
@@ -240,13 +241,13 @@ public partial class FenceWindow : Window
     // ---- Resize -----------------------------------------------------------
 
     private void ResizeRight_DragDelta(object sender, DragDeltaEventArgs e)
-        => SetFenceSize(_fence.Width + e.HorizontalChange, _fence.Height);
+        => SetPoolSize(_pool.Width + e.HorizontalChange, _pool.Height);
 
     private void ResizeBottom_DragDelta(object sender, DragDeltaEventArgs e)
-        => SetFenceSize(_fence.Width, _fence.Height + e.VerticalChange);
+        => SetPoolSize(_pool.Width, _pool.Height + e.VerticalChange);
 
     private void ResizeCorner_DragDelta(object sender, DragDeltaEventArgs e)
-        => SetFenceSize(_fence.Width + e.HorizontalChange, _fence.Height + e.VerticalChange);
+        => SetPoolSize(_pool.Width + e.HorizontalChange, _pool.Height + e.VerticalChange);
 
     private void Resize_Completed(object sender, DragCompletedEventArgs e)
     {
@@ -254,22 +255,22 @@ public partial class FenceWindow : Window
         _manager.Save();
     }
 
-    private void SetFenceSize(double width, double height)
+    private void SetPoolSize(double width, double height)
     {
-        _fence.Width = Math.Max(MinWidth_, width);
-        _fence.Height = Math.Max(MinHeight_, height);
-        Width = _fence.Width;
-        Height = _fence.Height;
+        _pool.Width = Math.Max(MinWidth_, width);
+        _pool.Height = Math.Max(MinHeight_, height);
+        Width = _pool.Width;
+        Height = _pool.Height;
     }
 
     // ---- Context menu -----------------------------------------------------
 
     private void Appearance_Click(object sender, RoutedEventArgs e)
     {
-        if (ShowAppearanceDialog(_fence.Color, _fence.Opacity, out string color, out double opacity))
+        if (ShowAppearanceDialog(_pool.Color, _pool.Opacity, out string color, out double opacity))
         {
-            _fence.Color = color;
-            _fence.Opacity = opacity;
+            _pool.Color = color;
+            _pool.Opacity = opacity;
             ApplyAppearance();
             _manager.Save();
         }
@@ -277,11 +278,11 @@ public partial class FenceWindow : Window
 
     private void Rename_Click(object sender, RoutedEventArgs e)
     {
-        string? name = PromptForText("Rename fence", _fence.Title);
+        string? name = PromptForText("Rename pool", _pool.Title);
         if (!string.IsNullOrWhiteSpace(name))
         {
-            _fence.Title = name.Trim();
-            TitleText.Text = _fence.Title;
+            _pool.Title = name.Trim();
+            TitleText.Text = _pool.Title;
             _manager.Save();
         }
     }
@@ -289,10 +290,10 @@ public partial class FenceWindow : Window
     private void Delete_Click(object sender, RoutedEventArgs e)
     {
         var result = MessageBox.Show(
-            $"Delete the fence \"{_fence.Title}\"? Its items return to the desktop.",
+            $"Delete the pool \"{_pool.Title}\"? Its items return to the desktop.",
             "Shimmer", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
         if (result != MessageBoxResult.OK) return;
-        _coord.DeleteFence(_fence); // App removes the fence and closes this window
+        _coord.DeletePool(_pool); // App removes the pool and closes this window
     }
 
     // ---- Small dialogs ----------------------------------------------------
@@ -330,7 +331,7 @@ public partial class FenceWindow : Window
 
         var dialog = new Window
         {
-            Title = "Fence appearance", Width = 300,
+            Title = "Pool appearance", Width = 300,
             SizeToContent = SizeToContent.Height, // auto-fit so the OK button is never clipped
             WindowStartupLocation = WindowStartupLocation.CenterScreen,
             ResizeMode = ResizeMode.NoResize, WindowStyle = WindowStyle.ToolWindow,

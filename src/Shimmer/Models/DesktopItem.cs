@@ -5,7 +5,7 @@ namespace Shimmer.Models;
 /// <summary>
 /// A real item that lives on the desktop (a shortcut, file, or folder), which
 /// Shimmer now renders itself as a tile. Identified by its full filesystem path
-/// — that is the stable key we use for fence membership and saved positions.
+/// — that is the stable key we use for pool membership and saved positions.
 /// </summary>
 public sealed class DesktopItem
 {

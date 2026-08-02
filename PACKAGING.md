@@ -3,6 +3,18 @@
 Two stages: **publish** the app into a distributable folder, then **package** that
 folder into an installer.
 
+## Quick way (one command)
+
+From the repo root:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\build.ps1
+```
+
+`build.ps1` publishes a self-contained single-file build and then compiles the
+installer (if Inno Setup is installed). The manual stages below explain what it
+does and how to do it by hand.
+
 ## Stage 1 — Publish (Visual Studio)
 
 You want a self-contained, single-file build so users don't need to install the

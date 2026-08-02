@@ -14,10 +14,10 @@ namespace Shimmer.Controls;
 
 /// <summary>
 /// One desktop item rendered as a tile (icon + label), used identically on the
-/// loose desktop layer and inside fences. Behaviours:
+/// loose desktop layer and inside pools. Behaviours:
 ///   * double-click  -> launch via the shell
 ///   * right-click   -> the real Windows shell context menu
-///   * left-drag     -> OLE drag so it can be dropped into a fence or back onto
+///   * left-drag     -> OLE drag so it can be dropped into a pool or back onto
 ///                      the desktop (works across our separate windows)
 /// </summary>
 public sealed class DesktopTile : Border

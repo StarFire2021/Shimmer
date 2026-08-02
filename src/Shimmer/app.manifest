@@ -13,7 +13,7 @@
     </security>
   </trustInfo>
 
-  <!-- Per-monitor DPI so fence rects line up with real icon coordinates on
+  <!-- Per-monitor DPI so pool rects line up with real icon coordinates on
        mixed-DPI setups. -->
   <application xmlns="urn:schemas-microsoft-com:asm.v3">
     <windowsSettings>

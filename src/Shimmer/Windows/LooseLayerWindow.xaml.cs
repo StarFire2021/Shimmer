@@ -11,14 +11,14 @@ using static Shimmer.Interop.NativeMethods;
 namespace Shimmer.Windows;
 
 /// <summary>
-/// The desktop-wide layer that renders un-fenced items as tiles now that
+/// The desktop-wide layer that renders un-pooled items as tiles now that
 /// Explorer's real icons are hidden. Spans the whole virtual screen, sits at the
 /// bottom of the z-order, and is transparent (click-through) between tiles so the
 /// desktop right-click menu still works.
 ///
-/// Tiles are the shared <see cref="DesktopTile"/>. Dragging a tile onto a fence
+/// Tiles are the shared <see cref="DesktopTile"/>. Dragging a tile onto a pool
 /// moves it there; dropping a tile back here repositions it (or releases it from
-/// a fence). Because the empty canvas is normally click-through, we make it a
+/// a pool). Because the empty canvas is normally click-through, we make it a
 /// solid (invisible) drop target only for the duration of a drag.
 /// </summary>
 public partial class LooseLayerWindow : Window
@@ -58,7 +58,7 @@ public partial class LooseLayerWindow : Window
     }
 
     // Force ourselves to the very bottom whenever the z-order is touched, so the
-    // loose layer stays underneath fences and all app windows.
+    // loose layer stays underneath pools and all app windows.
     private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
         if (msg == WM_WINDOWPOSCHANGING)

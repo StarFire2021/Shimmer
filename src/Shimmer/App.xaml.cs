@@ -12,17 +12,17 @@ namespace Shimmer;
 
 /// <summary>
 /// Tray host and desktop coordinator. Hides Explorer's real icons and renders our
-/// own: a loose layer for un-fenced items and a window per fence. Implements
-/// <see cref="IDesktopCoordinator"/> so tiles, the loose layer, and fences can
+/// own: a loose layer for un-pooled items and a window per pool. Implements
+/// <see cref="IDesktopCoordinator"/> so tiles, the loose layer, and pools can
 /// resolve membership and apply drops through one brain.
 /// </summary>
 public partial class App : System.Windows.Application, IDesktopCoordinator
 {
     private Forms.NotifyIcon _tray = null!;
     private LooseStore _looseStore = null!;
-    private FenceManager _manager = null!;
+    private PoolManager _manager = null!;
     private LooseLayerWindow? _looseLayer;
-    private readonly List<FenceWindow> _fenceWindows = new();
+    private readonly List<PoolWindow> _poolWindows = new();
     private Dictionary<string, DesktopItem> _items = new(StringComparer.OrdinalIgnoreCase);
     private DispatcherTimer _hideWatch = null!;
     private bool _iconsHidden;
@@ -37,7 +37,7 @@ public partial class App : System.Windows.Application, IDesktopCoordinator
         };
 
         _looseStore = new LooseStore();
-        _manager = new FenceManager(new FenceStore());
+        _manager = new PoolManager(new PoolStore());
         SetupTray();
 
         HideRealIconsAndRender();
@@ -63,11 +63,11 @@ public partial class App : System.Windows.Application, IDesktopCoordinator
         _looseLayer.Show();
 
         IntPtr looseHwnd = LooseHandle();
-        foreach (var fence in _manager.Fences.ToList())
+        foreach (var pool in _manager.Pools.ToList())
         {
-            var fw = new FenceWindow(fence, _manager, this, looseHwnd);
-            _fenceWindows.Add(fw);
-            fw.Show();
+            var pw = new PoolWindow(pool, _manager, this, looseHwnd);
+            _poolWindows.Add(pw);
+            pw.Show();
         }
 
         ReorderZ();
@@ -79,20 +79,20 @@ public partial class App : System.Windows.Application, IDesktopCoordinator
     private void RefreshAll()
     {
         _looseLayer?.Rebuild();
-        foreach (var fw in _fenceWindows) fw.Rebuild();
+        foreach (var pw in _poolWindows) pw.Rebuild();
     }
 
-    /// <summary>Keep the loose layer at the very bottom, fences just above it.</summary>
+    /// <summary>Keep the loose layer at the very bottom, pools just above it.</summary>
     private void ReorderZ()
     {
-        foreach (var fw in _fenceWindows) fw.SinkToBottom();
+        foreach (var pw in _poolWindows) pw.SinkToBottom();
         _looseLayer?.SinkToBottom();
     }
 
     private void CloseAllWindows()
     {
-        foreach (var fw in _fenceWindows.ToList()) fw.Close();
-        _fenceWindows.Clear();
+        foreach (var pw in _poolWindows.ToList()) pw.Close();
+        _poolWindows.Clear();
         _looseLayer?.Close();
         _looseLayer = null;
     }
@@ -100,24 +100,24 @@ public partial class App : System.Windows.Application, IDesktopCoordinator
     // ---- IDesktopCoordinator ---------------------------------------------
 
     public IEnumerable<DesktopItem> LooseItems() =>
-        _items.Values.Where(i => !_manager.IsFenced(i.Path));
+        _items.Values.Where(i => !_manager.IsPooled(i.Path));
 
-    public IEnumerable<DesktopItem> MembersOf(Fence fence)
+    public IEnumerable<DesktopItem> MembersOf(Pool pool)
     {
-        foreach (var path in fence.MemberPaths)
+        foreach (var path in pool.MemberPaths)
             if (_items.TryGetValue(path, out var item))
                 yield return item;
     }
 
-    public void DropToFence(string path, Fence fence)
+    public void DropToPool(string path, Pool pool)
     {
-        _manager.Assign(path, fence);
+        _manager.Assign(path, pool);
         RefreshAll();
     }
 
     public void DropToLoose(string path, double canvasX, double canvasY)
     {
-        _manager.RemoveFromFences(path);
+        _manager.RemoveFromPools(path);
         _looseStore.Set(path, canvasX, canvasY);
         RefreshAll();
     }
@@ -125,14 +125,14 @@ public partial class App : System.Windows.Application, IDesktopCoordinator
     public void BeginDrag() => _looseLayer?.SetDropMode(true);
     public void EndDrag() => _looseLayer?.SetDropMode(false);
 
-    public void DeleteFence(Fence fence)
+    public void DeletePool(Pool pool)
     {
-        _manager.RemoveFence(fence);
-        var fw = _fenceWindows.FirstOrDefault(w => w.Fence == fence);
-        if (fw is not null)
+        _manager.RemovePool(pool);
+        var pw = _poolWindows.FirstOrDefault(w => w.Pool == pool);
+        if (pw is not null)
         {
-            _fenceWindows.Remove(fw);
-            fw.Close();
+            _poolWindows.Remove(pw);
+            pw.Close();
         }
         RefreshAll();
     }
@@ -142,7 +142,7 @@ public partial class App : System.Windows.Application, IDesktopCoordinator
     private void SetupTray()
     {
         var menu = new Forms.ContextMenuStrip();
-        menu.Items.Add("New fence", null, (_, _) => NewFence());
+        menu.Items.Add("New pool", null, (_, _) => NewPool());
         menu.Items.Add("Rescan desktop", null, (_, _) => Rescan());
         menu.Items.Add("Show/hide real desktop icons", null, (_, _) => ToggleRealIcons());
 
@@ -164,7 +164,7 @@ public partial class App : System.Windows.Application, IDesktopCoordinator
             Text = "Shimmer",
             ContextMenuStrip = menu,
         };
-        _tray.DoubleClick += (_, _) => NewFence();
+        _tray.DoubleClick += (_, _) => NewPool();
     }
 
     private static Drawing.Icon LoadTrayIcon()
@@ -208,17 +208,17 @@ public partial class App : System.Windows.Application, IDesktopCoordinator
         catch { /* registry access denied etc.: non-fatal */ }
     }
 
-    private void NewFence()
+    private void NewPool()
     {
         if (!_iconsHidden) return;
         var area = SystemParameters.WorkArea;
-        double left = area.Left + 80 + _fenceWindows.Count * 24;
-        double top = area.Top + 80 + _fenceWindows.Count * 24;
+        double left = area.Left + 80 + _poolWindows.Count * 24;
+        double top = area.Top + 80 + _poolWindows.Count * 24;
 
-        var fence = _manager.CreateFence(left, top, 320, 240);
-        var fw = new FenceWindow(fence, _manager, this, LooseHandle());
-        _fenceWindows.Add(fw);
-        fw.Show();
+        var pool = _manager.CreatePool(left, top, 320, 240);
+        var pw = new PoolWindow(pool, _manager, this, LooseHandle());
+        _poolWindows.Add(pw);
+        pw.Show();
         ReorderZ();
     }
 
