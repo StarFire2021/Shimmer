@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Threading;
@@ -178,6 +180,8 @@ public partial class App : System.Windows.Application, IDesktopCoordinator
         };
         startup.Click += (_, _) => SetRunAtLogin(startup.Checked);
         menu.Items.Add(startup);
+
+        menu.Items.Add("Check for updates…", null, async (_, _) => await CheckForUpdatesAsync());
 
         menu.Items.Add(new Forms.ToolStripSeparator());
         menu.Items.Add("Exit", null, (_, _) => ExitApp());
@@ -403,6 +407,58 @@ public partial class App : System.Windows.Application, IDesktopCoordinator
         {
             HideRealIconsAndRender();
         }
+    }
+
+    // ---- Updates ----------------------------------------------------------
+
+    private async Task CheckForUpdatesAsync()
+    {
+        UpdateInfo? info;
+        try
+        {
+            info = await Updater.GetLatestAsync();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Couldn't check for updates:\n{ex.Message}", "Shimmer",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        if (info is null)
+        {
+            MessageBox.Show("Couldn't read the latest release. Please try again later.", "Shimmer");
+            return;
+        }
+
+        if (!Updater.IsNewer(info.Version))
+        {
+            MessageBox.Show($"Shimmer is up to date (v{Updater.CurrentVersion.ToString(3)}).", "Shimmer",
+                MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        var choice = MessageBox.Show(
+            $"A new version is available: {info.Tag}\nYou have v{Updater.CurrentVersion.ToString(3)}.\n\n" +
+            "Download and install it now? Shimmer will close during the update.",
+            "Shimmer Update", MessageBoxButton.OKCancel, MessageBoxImage.Information);
+        if (choice != MessageBoxResult.OK) return;
+
+        string installer;
+        try
+        {
+            installer = await Updater.DownloadInstallerAsync(info.InstallerUrl);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Download failed:\n{ex.Message}", "Shimmer",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        // Launch the installer, then exit so it can replace the running files.
+        Process.Start(new ProcessStartInfo { FileName = installer, UseShellExecute = true });
+        ExitApp();
     }
 
     // ---- Lifetime ---------------------------------------------------------

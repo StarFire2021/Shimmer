@@ -37,6 +37,8 @@ until you hover them. A desktop icon organizer, built from scratch in C#/.NET WP
   desktop. Positions, membership, colors, and layout persist across restarts.
 - **Stays out of the way.** Pools sit on the desktop *behind* your app windows,
   never stealing focus, with a custom tray icon and optional run-at-login.
+- **Self-updating.** "Check for updates" in the tray grabs the latest release from
+  GitHub and runs the installer for you.
 
 ## How it works
 
