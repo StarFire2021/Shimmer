@@ -12,7 +12,7 @@
 ; (ISCC /DMyAppVersion=1.2.3 /DPublishDir=...), which the GitHub Actions
 ; workflow uses. Local builds just use the defaults below.
 #ifndef MyAppVersion
-  #define MyAppVersion "1.0.1"
+  #define MyAppVersion "1.1.0"
 #endif
 #define MyAppPublisher "Steven"
 #define MyAppExeName "Shimmer.exe"

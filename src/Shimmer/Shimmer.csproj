@@ -9,7 +9,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <RootNamespace>Shimmer</RootNamespace>
     <AssemblyName>Shimmer</AssemblyName>
-    <Version>1.0.1</Version>
+    <Version>1.1.0</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <!-- Exe / app-list icon -->
     <ApplicationIcon>Assets\shimmer.ico</ApplicationIcon>

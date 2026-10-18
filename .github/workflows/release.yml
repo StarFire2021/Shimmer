@@ -30,6 +30,10 @@ jobs:
           $v = "${{ github.ref_name }}".TrimStart('v')
           "version=$v" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
+      # Gate the release on the tests: if they fail, no build is published.
+      - name: Test
+        run: dotnet test Shimmer.sln -c Release
+
       - name: Publish (self-contained, single file)
         shell: pwsh
         run: |

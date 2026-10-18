@@ -1,0 +1,30 @@
+name: CI
+
+# Build and run the unit/integration tests on every push and pull request, so
+# regressions are caught before a release tag is ever cut.
+on:
+  push:
+    branches: [ main, 'feature/**' ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test:
+    runs-on: windows-latest   # WPF only builds on Windows
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore Shimmer.sln
+
+      - name: Build
+        run: dotnet build Shimmer.sln -c Release --no-restore
+
+      - name: Test
+        run: dotnet test Shimmer.sln -c Release --no-build --verbosity normal
