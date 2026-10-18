@@ -8,11 +8,18 @@
 ; administrator rights — a good fit for a tray utility.
 
 #define MyAppName "Shimmer"
-#define MyAppVersion "1.0.0"
+; MyAppVersion and PublishDir can be overridden on the command line
+; (ISCC /DMyAppVersion=1.2.3 /DPublishDir=...), which the GitHub Actions
+; workflow uses. Local builds just use the defaults below.
+#ifndef MyAppVersion
+  #define MyAppVersion "1.0.1"
+#endif
 #define MyAppPublisher "Steven"
 #define MyAppExeName "Shimmer.exe"
 ; Path to the published output (win-x64). Adjust if you publish elsewhere.
-#define PublishDir "C:\Users\Phoenix\Documents\Shimmer\"
+#ifndef PublishDir
+  #define PublishDir "C:\Users\Phoenix\Documents\Shimmer\"
+#endif
 
 [Setup]
 AppId={{B1A2C3D4-E5F6-4A7B-8C9D-0E1F2A3B4C5D}

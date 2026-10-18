@@ -10,6 +10,10 @@ Shimmer hides your real desktop icons and re-renders them as its own tiles, whic
 you can group into labeled, colored **pools** — draggable containers that can hide
 until you hover them. A desktop icon organizer, built from scratch in C#/.NET WPF.
 
+**[⬇ Download the latest release](https://github.com/StarFire2021/Shimmer/releases/latest)**
+
+[![Build & Release](https://github.com/StarFire2021/Shimmer/actions/workflows/release.yml/badge.svg)](https://github.com/StarFire2021/Shimmer/actions/workflows/release.yml)
+
 </div>
 
 ---
@@ -59,7 +63,7 @@ A fuller architecture tour lives in the source comments; the interesting bits ar
 ## Build & run
 
 ```powershell
-git clone https://github.com/<your-username>/Shimmer.git
+git clone https://github.com/StarFire2021/Shimmer.git
 cd Shimmer
 dotnet run --project src/Shimmer/Shimmer.csproj -c Release
 ```

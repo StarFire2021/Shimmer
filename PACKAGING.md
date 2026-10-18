@@ -15,6 +15,20 @@ powershell -ExecutionPolicy Bypass -File .\build.ps1
 installer (if Inno Setup is installed). The manual stages below explain what it
 does and how to do it by hand.
 
+## Releasing (automated via GitHub Actions)
+
+Pushing a version tag builds the installer on a Windows runner and publishes a
+GitHub Release with it attached — no local build needed:
+
+```powershell
+git tag v1.1.0
+git push --tags
+```
+
+The workflow lives in `.github/workflows/release.yml`. It passes the tag's version
+and its own publish path into `shimmer.iss` (which is why `MyAppVersion` and
+`PublishDir` there are written to allow command-line overrides).
+
 ## Stage 1 — Publish (Visual Studio)
 
 You want a self-contained, single-file build so users don't need to install the
