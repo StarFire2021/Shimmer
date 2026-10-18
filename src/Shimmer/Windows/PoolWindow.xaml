@@ -50,7 +50,7 @@
                     </MenuItem>
                     <Separator />
                     <MenuItem Header="Appearance…" Click="Appearance_Click" />
-                    <MenuItem x:Name="LockMenuItem" Header="Lock Local Settings"
+                    <MenuItem x:Name="LockMenuItem" Header="Lock local settings"
                               IsCheckable="True" Click="Lock_Click" />
                     <MenuItem Header="Rename…" Click="Rename_Click" />
                     <MenuItem Header="Delete pool" Click="Delete_Click" />
