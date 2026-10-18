@@ -99,11 +99,6 @@
                             <Setter Property="MinWidth" Value="8" />
                             <Setter Property="Background" Value="Transparent" />
                             <Setter Property="Opacity" Value="0" />
-                            <Style.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Opacity" Value="1" />
-                                </Trigger>
-                            </Style.Triggers>
                             <Setter Property="Template">
                                 <Setter.Value>
                                     <ControlTemplate TargetType="ScrollBar">
@@ -132,6 +127,11 @@
                                     </ControlTemplate>
                                 </Setter.Value>
                             </Setter>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Opacity" Value="1" />
+                                </Trigger>
+                            </Style.Triggers>
                         </Style>
                     </ScrollViewer.Resources>
                     <WrapPanel x:Name="Tiles" />
