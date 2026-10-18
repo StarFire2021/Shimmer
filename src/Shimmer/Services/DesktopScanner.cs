@@ -41,6 +41,7 @@ public static class DesktopScanner
                     Path = path,
                     Name = IconExtractor.GetDisplayName(path),
                     IsDirectory = isDir,
+                    Modified = GetModified(path, isDir),
                     Icon = IconExtractor.GetIcon(path),
                 };
                 items.Add(item);
@@ -48,6 +49,12 @@ public static class DesktopScanner
         }
 
         return items;
+    }
+
+    private static DateTime? GetModified(string path, bool isDir)
+    {
+        try { return isDir ? Directory.GetLastWriteTime(path) : File.GetLastWriteTime(path); }
+        catch { return null; }
     }
 
     private static IEnumerable<string> DesktopFolders()

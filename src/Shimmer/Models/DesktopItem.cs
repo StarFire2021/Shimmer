@@ -13,6 +13,9 @@ public sealed class DesktopItem
     public required string Name { get; init; }
     public bool IsDirectory { get; init; }
 
+    /// <summary>Last-modified time, used for date sorting (null if unavailable).</summary>
+    public DateTime? Modified { get; init; }
+
     /// <summary>The item's real Windows icon, as a WPF image (may be null if extraction failed).</summary>
     public ImageSource? Icon { get; set; }
 

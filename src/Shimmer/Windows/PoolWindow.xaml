@@ -28,6 +28,14 @@
                     <MenuItem x:Name="AutoHideMenuItem" Header="Hide until hover"
                               IsCheckable="True" Click="AutoHide_Click" />
                     <Separator />
+                    <MenuItem x:Name="SortMenu" Header="Sort by">
+                        <MenuItem Header="Manual (drag to arrange)" Tag="Manual" IsCheckable="True" Click="Sort_Click" />
+                        <MenuItem Header="Name" Tag="Name" IsCheckable="True" Click="Sort_Click" />
+                        <MenuItem Header="Type" Tag="Type" IsCheckable="True" Click="Sort_Click" />
+                        <MenuItem Header="Date modified" Tag="DateModified" IsCheckable="True" Click="Sort_Click" />
+                        <MenuItem Header="Recently used" Tag="RecentlyUsed" IsCheckable="True" Click="Sort_Click" />
+                    </MenuItem>
+                    <Separator />
                     <MenuItem Header="Appearance…" Click="Appearance_Click" />
                     <MenuItem Header="Rename…" Click="Rename_Click" />
                     <MenuItem Header="Delete pool" Click="Delete_Click" />

@@ -18,14 +18,17 @@ public sealed class PoolStore
 
     public string FilePath { get; }
 
-    public PoolStore()
+    public PoolStore() : this(DefaultDir()) { }
+
+    /// <summary>Overridable directory, used by tests.</summary>
+    public PoolStore(string directory)
     {
-        string dir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "Shimmer");
-        Directory.CreateDirectory(dir);
-        FilePath = Path.Combine(dir, "pools.json");
+        Directory.CreateDirectory(directory);
+        FilePath = Path.Combine(directory, "pools.json");
     }
+
+    private static string DefaultDir() =>
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Shimmer");
 
     public List<Pool> Load()
     {

@@ -137,6 +137,7 @@ public sealed class DesktopTile : Border
     {
         try
         {
+            _coord.RecordLaunch(Item.Path);
             Process.Start(new ProcessStartInfo { FileName = Item.Path, UseShellExecute = true });
         }
         catch (Exception ex)

@@ -20,6 +20,7 @@ public partial class App : System.Windows.Application, IDesktopCoordinator
 {
     private Forms.NotifyIcon _tray = null!;
     private LooseStore _looseStore = null!;
+    private UsageStore _usage = null!;
     private PoolManager _manager = null!;
     private LooseLayerWindow? _looseLayer;
     private readonly List<PoolWindow> _poolWindows = new();
@@ -37,6 +38,7 @@ public partial class App : System.Windows.Application, IDesktopCoordinator
         };
 
         _looseStore = new LooseStore();
+        _usage = new UsageStore();
         _manager = new PoolManager(new PoolStore());
         SetupTray();
 
@@ -104,14 +106,27 @@ public partial class App : System.Windows.Application, IDesktopCoordinator
 
     public IEnumerable<DesktopItem> MembersOf(Pool pool)
     {
+        var ordered = new List<DesktopItem>(pool.MemberPaths.Count);
         foreach (var path in pool.MemberPaths)
             if (_items.TryGetValue(path, out var item))
-                yield return item;
+                ordered.Add(item);
+        return MemberSorter.Sort(ordered, pool.SortMode, _usage.Snapshot());
     }
 
-    public void DropToPool(string path, Pool pool)
+    public void DropToPoolAt(string path, Pool pool, int index)
     {
-        _manager.Assign(path, pool);
+        // Bake the currently displayed order into MemberPaths (so what you see
+        // becomes the manual baseline), then insert the dropped item at the spot.
+        var order = MembersOf(pool).Select(i => i.Path).ToList();
+        order.RemoveAll(p => p.Equals(path, StringComparison.OrdinalIgnoreCase));
+        _manager.RemoveFromPools(path);
+
+        index = Math.Clamp(index, 0, order.Count);
+        order.Insert(index, path);
+
+        pool.MemberPaths = order;
+        pool.SortMode = SortMode.Manual;
+        _manager.Save();
         RefreshAll();
     }
 
@@ -124,6 +139,8 @@ public partial class App : System.Windows.Application, IDesktopCoordinator
 
     public void BeginDrag() => _looseLayer?.SetDropMode(true);
     public void EndDrag() => _looseLayer?.SetDropMode(false);
+
+    public void RecordLaunch(string path) => _usage.Record(path);
 
     public void DeletePool(Pool pool)
     {

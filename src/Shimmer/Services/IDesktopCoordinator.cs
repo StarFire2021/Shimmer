@@ -15,11 +15,17 @@ public interface IDesktopCoordinator
     /// <summary>Items belonging to a given pool (in membership order).</summary>
     IEnumerable<DesktopItem> MembersOf(Pool pool);
 
-    /// <summary>Assign an item to a pool (removing it from any other pool / loose).</summary>
-    void DropToPool(string path, Pool pool);
+    /// <summary>
+    /// Assign an item to a pool at a specific position (removing it from any other
+    /// pool / loose). Switches the pool to Manual order so the arrangement sticks.
+    /// </summary>
+    void DropToPoolAt(string path, Pool pool, int index);
 
     /// <summary>Release an item back onto the desktop at the given loose-layer coordinates.</summary>
     void DropToLoose(string path, double canvasX, double canvasY);
+
+    /// <summary>Record that an item was just launched (for the "Recently used" sort).</summary>
+    void RecordLaunch(string path);
 
     /// <summary>Called when a tile drag starts, so the loose layer can become a drop target.</summary>
     void BeginDrag();

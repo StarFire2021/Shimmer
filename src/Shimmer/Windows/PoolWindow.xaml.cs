@@ -87,6 +87,7 @@ public partial class PoolWindow : Window
         Rebuild();
         AutoHideMenuItem.IsChecked = _pool.AutoHide;
         ApplyRolled();
+        UpdateSortChecks();
         UpdateScreenRect();
         if (_pool.AutoHide)
         {
@@ -157,6 +158,27 @@ public partial class PoolWindow : Window
         RollMenuItem.IsChecked = _pool.RolledUp;
         RollButton.Content = _pool.RolledUp ? "▸" : "▾";
         UpdateScreenRect();
+    }
+
+    // ---- Sorting ----------------------------------------------------------
+
+    private void Sort_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuItem mi && mi.Tag is string tag && Enum.TryParse<SortMode>(tag, out var mode))
+        {
+            _pool.SortMode = mode;
+            _manager.Save();
+            Rebuild();
+            UpdateSortChecks();
+        }
+    }
+
+    /// <summary>Tick the one sort item matching the pool's current mode.</summary>
+    private void UpdateSortChecks()
+    {
+        foreach (var obj in SortMenu.Items)
+            if (obj is MenuItem mi && mi.Tag is string tag)
+                mi.IsChecked = Enum.TryParse<SortMode>(tag, out var m) && m == _pool.SortMode;
     }
 
     // ---- Hide until hover -------------------------------------------------
@@ -233,9 +255,29 @@ public partial class PoolWindow : Window
     {
         if (e.Data.GetDataPresent(DragFormats.Item) && e.Data.GetData(DragFormats.Item) is string path)
         {
-            _coord.DropToPool(path, _pool);
+            int index = ComputeDropIndex(e.GetPosition(Tiles));
+            _coord.DropToPoolAt(path, _pool, index);
             e.Handled = true;
         }
+    }
+
+    /// <summary>
+    /// Figure out where in the tile list a drop lands: before/after whichever tile
+    /// the cursor is over (by its horizontal half), or at the end if over empty space.
+    /// </summary>
+    private int ComputeDropIndex(Point p)
+    {
+        for (int i = 0; i < Tiles.Children.Count; i++)
+        {
+            if (Tiles.Children[i] is FrameworkElement fe)
+            {
+                var tl = fe.TranslatePoint(new Point(0, 0), Tiles);
+                var rect = new Rect(tl.X, tl.Y, fe.ActualWidth, fe.ActualHeight);
+                if (rect.Contains(p))
+                    return p.X < rect.Left + rect.Width / 2 ? i : i + 1;
+            }
+        }
+        return Tiles.Children.Count;
     }
 
     // ---- Resize -----------------------------------------------------------

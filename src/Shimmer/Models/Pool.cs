@@ -27,6 +27,9 @@ public sealed class Pool
     /// <summary>When true, the body is collapsed to just the title bar.</summary>
     public bool RolledUp { get; set; }
 
+    /// <summary>How member tiles are ordered. Manual = the raw MemberPaths order.</summary>
+    public SortMode SortMode { get; set; } = SortMode.Manual;
+
     /// <summary>Full paths of the desktop items that belong to this pool.</summary>
     public List<string> MemberPaths { get; set; } = new();
 
