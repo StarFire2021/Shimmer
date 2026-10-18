@@ -32,13 +32,13 @@
                     <MenuItem x:Name="MagneticSnapMenuItem" Header="Snap edges to even padding"
                               IsCheckable="True" Click="MagneticSnap_Click" />
                     <Separator />
-                    <!-- Sort options flattened into the main menu (no submenu to navigate) -->
-                    <MenuItem Header="Sort by" IsEnabled="False" />
-                    <MenuItem Header="Manual (drag to arrange)" Tag="Manual" IsCheckable="True" Click="Sort_Click" />
-                    <MenuItem Header="Name" Tag="Name" IsCheckable="True" Click="Sort_Click" />
-                    <MenuItem Header="Type" Tag="Type" IsCheckable="True" Click="Sort_Click" />
-                    <MenuItem Header="Date modified" Tag="DateModified" IsCheckable="True" Click="Sort_Click" />
-                    <MenuItem Header="Recently used" Tag="RecentlyUsed" IsCheckable="True" Click="Sort_Click" />
+                    <MenuItem x:Name="SortMenu" Header="Sort by">
+                        <MenuItem Header="Manual (drag to arrange)" Tag="Manual" IsCheckable="True" Click="Sort_Click" />
+                        <MenuItem Header="Name" Tag="Name" IsCheckable="True" Click="Sort_Click" />
+                        <MenuItem Header="Type" Tag="Type" IsCheckable="True" Click="Sort_Click" />
+                        <MenuItem Header="Date modified" Tag="DateModified" IsCheckable="True" Click="Sort_Click" />
+                        <MenuItem Header="Recently used" Tag="RecentlyUsed" IsCheckable="True" Click="Sort_Click" />
+                    </MenuItem>
                     <Separator />
                     <MenuItem Header="Appearance…" Click="Appearance_Click" />
                     <MenuItem Header="Rename…" Click="Rename_Click" />
@@ -46,7 +46,7 @@
                 </ContextMenu>
             </Border.ContextMenu>
 
-            <Grid Margin="10,0,6,0">
+            <Grid Margin="14,0,16,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
@@ -79,19 +79,26 @@
                     <WrapPanel x:Name="Tiles" />
                 </ScrollViewer>
             </Border>
-
-            <Thumb x:Name="ResizeRight" Width="6"
-                   HorizontalAlignment="Right" VerticalAlignment="Stretch"
-                   Cursor="SizeWE" Opacity="0"
-                   DragDelta="ResizeRight_DragDelta" DragCompleted="Resize_Completed" />
-            <Thumb x:Name="ResizeBottom" Height="6"
-                   HorizontalAlignment="Stretch" VerticalAlignment="Bottom"
-                   Cursor="SizeNS" Opacity="0"
-                   DragDelta="ResizeBottom_DragDelta" DragCompleted="Resize_Completed" />
-            <Thumb x:Name="ResizeCorner" Width="14" Height="14"
-                   HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                   Cursor="SizeNWSE" Opacity="0"
-                   DragDelta="ResizeCorner_DragDelta" DragCompleted="Resize_Completed" />
         </Grid>
+
+        <!-- Resize grips overlay the whole window (both rows) so every edge and
+             corner can resize. Transparent; only the cursor shows. Tag encodes
+             which edges each grip controls (L/R/T/B). -->
+        <Thumb Grid.RowSpan="2" Tag="L" Width="7" HorizontalAlignment="Left" VerticalAlignment="Stretch"
+               Cursor="SizeWE" Opacity="0" DragDelta="Resize_DragDelta" DragCompleted="Resize_DragCompleted" />
+        <Thumb Grid.RowSpan="2" Tag="R" Width="7" HorizontalAlignment="Right" VerticalAlignment="Stretch"
+               Cursor="SizeWE" Opacity="0" DragDelta="Resize_DragDelta" DragCompleted="Resize_DragCompleted" />
+        <Thumb Grid.RowSpan="2" Tag="T" Height="7" HorizontalAlignment="Stretch" VerticalAlignment="Top"
+               Cursor="SizeNS" Opacity="0" DragDelta="Resize_DragDelta" DragCompleted="Resize_DragCompleted" />
+        <Thumb Grid.RowSpan="2" Tag="B" Height="7" HorizontalAlignment="Stretch" VerticalAlignment="Bottom"
+               Cursor="SizeNS" Opacity="0" DragDelta="Resize_DragDelta" DragCompleted="Resize_DragCompleted" />
+        <Thumb Grid.RowSpan="2" Tag="TL" Width="12" Height="12" HorizontalAlignment="Left" VerticalAlignment="Top"
+               Cursor="SizeNWSE" Opacity="0" DragDelta="Resize_DragDelta" DragCompleted="Resize_DragCompleted" />
+        <Thumb Grid.RowSpan="2" Tag="TR" Width="12" Height="12" HorizontalAlignment="Right" VerticalAlignment="Top"
+               Cursor="SizeNESW" Opacity="0" DragDelta="Resize_DragDelta" DragCompleted="Resize_DragCompleted" />
+        <Thumb Grid.RowSpan="2" Tag="BL" Width="12" Height="12" HorizontalAlignment="Left" VerticalAlignment="Bottom"
+               Cursor="SizeNESW" Opacity="0" DragDelta="Resize_DragDelta" DragCompleted="Resize_DragCompleted" />
+        <Thumb Grid.RowSpan="2" Tag="BR" Width="12" Height="12" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+               Cursor="SizeNWSE" Opacity="0" DragDelta="Resize_DragDelta" DragCompleted="Resize_DragCompleted" />
     </Grid>
 </Window>

@@ -191,9 +191,7 @@ public partial class PoolWindow : Window
     /// <summary>Tick the one sort item matching the pool's current mode.</summary>
     private void UpdateSortChecks()
     {
-        if (TitleBar.ContextMenu is null) return;
-        // Sort items are the (now flat) menu items whose Tag parses to a SortMode.
-        foreach (var obj in TitleBar.ContextMenu.Items)
+        foreach (var obj in SortMenu.Items)
             if (obj is MenuItem mi && mi.Tag is string tag && Enum.TryParse<SortMode>(tag, out var m))
                 mi.IsChecked = m == _pool.SortMode;
     }
@@ -241,9 +239,29 @@ public partial class PoolWindow : Window
         }
     }
 
-    // Pause auto-hide while the right-click menu (and its submenus) are open.
-    private void Menu_Opened(object sender, RoutedEventArgs e) => _menuOpen = true;
-    private void Menu_Closed(object sender, RoutedEventArgs e) => _menuOpen = false;
+    // While the right-click menu is open we (a) pause auto-hide and (b) let the
+    // pool take focus. Normally the pool is a no-activate window, which prevents
+    // nested submenu popups from holding focus and makes them dismiss while you
+    // navigate to them. We drop that style for the duration of the menu and
+    // foreground the window, then restore it on close.
+    private void Menu_Opened(object sender, RoutedEventArgs e)
+    {
+        _menuOpen = true;
+        var hwnd = new WindowInteropHelper(this).Handle;
+        if (hwnd == IntPtr.Zero) return;
+        int ex = GetWindowLong(hwnd, GWL_EXSTYLE);
+        SetWindowLong(hwnd, GWL_EXSTYLE, ex & ~WS_EX_NOACTIVATE);
+        SetForegroundWindow(hwnd);
+    }
+
+    private void Menu_Closed(object sender, RoutedEventArgs e)
+    {
+        _menuOpen = false;
+        var hwnd = new WindowInteropHelper(this).Handle;
+        if (hwnd == IntPtr.Zero) return;
+        int ex = GetWindowLong(hwnd, GWL_EXSTYLE);
+        SetWindowLong(hwnd, GWL_EXSTYLE, ex | WS_EX_NOACTIVATE); // restore no-activate
+    }
 
     // ---- Drag to move -----------------------------------------------------
 
@@ -305,42 +323,64 @@ public partial class PoolWindow : Window
 
     // ---- Resize -----------------------------------------------------------
 
-    private void ResizeRight_DragDelta(object sender, DragDeltaEventArgs e)
-        => SetPoolSize(_pool.Width + e.HorizontalChange, _pool.Height);
-
-    private void ResizeBottom_DragDelta(object sender, DragDeltaEventArgs e)
-        => SetPoolSize(_pool.Width, _pool.Height + e.VerticalChange);
-
-    private void ResizeCorner_DragDelta(object sender, DragDeltaEventArgs e)
-        => SetPoolSize(_pool.Width + e.HorizontalChange, _pool.Height + e.VerticalChange);
-
-    private void Resize_Completed(object sender, DragCompletedEventArgs e)
+    private void Resize_DragDelta(object sender, DragDeltaEventArgs e)
     {
-        UpdateScreenRect();
+        var edges = (sender as FrameworkElement)?.Tag as string ?? "";
+        ApplyResize(edges, e.HorizontalChange, e.VerticalChange, finalize: false);
+    }
+
+    private void Resize_DragCompleted(object sender, DragCompletedEventArgs e)
+    {
+        var edges = (sender as FrameworkElement)?.Tag as string ?? "";
+        ApplyResize(edges, 0, 0, finalize: true); // snap once, on release
         _manager.Save();
     }
 
-    private void SetPoolSize(double width, double height)
+    /// <summary>
+    /// Resize from any edge/corner. During a drag (finalize=false) movement is
+    /// free so the edge is easy to grab and move; on release (finalize=true) the
+    /// active snap mode is applied, anchored to the opposite edge so the edge you
+    /// dragged is the one that snaps.
+    /// </summary>
+    private void ApplyResize(string edges, double dx, double dy, bool finalize)
     {
-        if (_pool.AutoSnap)
+        bool left = edges.Contains('L'), right = edges.Contains('R');
+        bool top = edges.Contains('T'), bottom = edges.Contains('B');
+
+        double newLeft = Left, newTop = Top, w = _pool.Width, h = _pool.Height;
+        if (right) w += dx;
+        if (bottom) h += dy;
+        if (left) { w -= dx; newLeft += dx; }
+        if (top) { h -= dy; newTop += dy; }
+
+        if (finalize && (_pool.AutoSnap || _pool.MagneticSnap))
         {
-            // Dragging width chooses the column count; height always fits the tiles.
-            ApplyAutoSnap(width);
-            return;
+            double sw, sh;
+            if (_pool.AutoSnap)
+                (sw, sh) = GridSizer.Snap(w, Tiles.Children.Count, CellW, CellH, BodyPad, TitleHeight);
+            else
+            {
+                sw = GridSizer.MagneticSnap(w, CellW, BodyPad, SnapRange);
+                sh = GridSizer.MagneticSnap(h, CellH, TitleHeight + BodyPad, SnapRange);
+            }
+            if (left) newLeft += w - sw; // keep the right edge fixed
+            if (top) newTop += h - sh;   // keep the bottom edge fixed
+            w = sw; h = sh;
         }
 
-        if (_pool.MagneticSnap)
-        {
-            // Free resize, but each edge magnetically snaps to even padding when
-            // close — keeping whatever column/row count the user is dragging toward.
-            width = GridSizer.MagneticSnap(width, CellW, BodyPad, SnapRange);
-            height = GridSizer.MagneticSnap(height, CellH, TitleHeight + BodyPad, SnapRange);
-        }
+        // Clamp to minimum, keeping the anchored edge fixed for left/top drags.
+        if (w < MinWidth_) { if (left) newLeft -= MinWidth_ - w; w = MinWidth_; }
+        if (h < MinHeight_) { if (top) newTop -= MinHeight_ - h; h = MinHeight_; }
 
-        _pool.Width = Math.Max(MinWidth_, width);
-        _pool.Height = Math.Max(MinHeight_, height);
-        Width = _pool.Width;
-        Height = _pool.Height;
+        Left = newLeft;
+        Top = newTop;
+        _pool.Left = newLeft;
+        _pool.Top = newTop;
+        _pool.Width = w;
+        _pool.Height = h;
+        Width = w;
+        Height = _pool.RolledUp ? TitleHeight : h;
+        UpdateScreenRect();
     }
 
     /// <summary>

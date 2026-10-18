@@ -127,6 +127,9 @@ internal static class NativeMethods
     [DllImport("user32.dll", SetLastError = true)]
     internal static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
 
+    [DllImport("user32.dll")]
+    internal static extern bool SetForegroundWindow(IntPtr hWnd);
+
     // ---- Structs ----------------------------------------------------------
 
     [StructLayout(LayoutKind.Sequential)]
