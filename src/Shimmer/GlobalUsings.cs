@@ -18,6 +18,7 @@ global using TextBox = System.Windows.Controls.TextBox;
 global using HorizontalAlignment = System.Windows.HorizontalAlignment;
 global using Color = System.Windows.Media.Color;
 global using Brushes = System.Windows.Media.Brushes;
+global using Brush = System.Windows.Media.Brush;
 global using ColorConverter = System.Windows.Media.ColorConverter;
 global using Image = System.Windows.Controls.Image;
 global using Cursors = System.Windows.Input.Cursors;
