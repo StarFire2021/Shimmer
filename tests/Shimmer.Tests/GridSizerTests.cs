@@ -60,4 +60,32 @@ public class GridSizerTests
         Assert.Equal(0, (w - Pad) % CellW);
         Assert.Equal(0, (h - Title - Pad) % CellH);
     }
+
+    // ---- MagneticSnap ----------------------------------------------------
+    // Clean 2-column width = 2*92 + 12 = 196.
+
+    [Fact]
+    public void Magnetic_WithinRange_SnapsToEvenPadding()
+    {
+        Assert.Equal(196, GridSizer.MagneticSnap(190, CellW, Pad, 22)); // 6 px away -> snaps
+        Assert.Equal(196, GridSizer.MagneticSnap(205, CellW, Pad, 22)); // 9 px away -> snaps
+    }
+
+    [Fact]
+    public void Magnetic_OutsideRange_StaysFree()
+    {
+        Assert.Equal(230, GridSizer.MagneticSnap(230, CellW, Pad, 22)); // 34 px from 196 -> unchanged
+    }
+
+    [Fact]
+    public void Magnetic_SnapsToNearestBoundary()
+    {
+        Assert.Equal(288, GridSizer.MagneticSnap(284, CellW, Pad, 22)); // near 3-col (3*92+12)
+    }
+
+    [Fact]
+    public void Magnetic_NeverSnapsBelowOneCell()
+    {
+        Assert.Equal(104, GridSizer.MagneticSnap(110, CellW, Pad, 22)); // snaps to one cell (92+12)
+    }
 }

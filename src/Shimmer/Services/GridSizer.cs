@@ -20,4 +20,17 @@ public static class GridSizer
         double height = titleHeight + rows * cellH + bodyPad;
         return (width, height);
     }
+
+    /// <summary>
+    /// Magnetic snap along one axis: if <paramref name="value"/> is within
+    /// <paramref name="range"/> of a clean "N whole cells + offset" size, return
+    /// that size (so the edge matches the opposite side's padding); otherwise
+    /// return the value unchanged. Never snaps below one cell.
+    /// </summary>
+    public static double MagneticSnap(double value, double cell, double offset, double range)
+    {
+        double units = Math.Max(1, Math.Round((value - offset) / cell));
+        double snapped = units * cell + offset;
+        return Math.Abs(snapped - value) <= range ? snapped : value;
+    }
 }

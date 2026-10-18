@@ -29,6 +29,7 @@ public partial class PoolWindow : Window
     private const double CellW = 92;
     private const double CellH = 96;
     private const double BodyPad = 12;
+    private const double SnapRange = 22; // how close (px) an edge must be to snap magnetically
 
     // Minimum is exactly one icon cell, so a pool can be a single column/row.
     private const double MinWidth_ = CellW + BodyPad;              // 104
@@ -97,6 +98,7 @@ public partial class PoolWindow : Window
         Rebuild();
         AutoHideMenuItem.IsChecked = _pool.AutoHide;
         AutoSnapMenuItem.IsChecked = _pool.AutoSnap;
+        MagneticSnapMenuItem.IsChecked = _pool.MagneticSnap;
         ApplyRolled();
         UpdateSortChecks();
         UpdateScreenRect();
@@ -189,9 +191,11 @@ public partial class PoolWindow : Window
     /// <summary>Tick the one sort item matching the pool's current mode.</summary>
     private void UpdateSortChecks()
     {
-        foreach (var obj in SortMenu.Items)
-            if (obj is MenuItem mi && mi.Tag is string tag)
-                mi.IsChecked = Enum.TryParse<SortMode>(tag, out var m) && m == _pool.SortMode;
+        if (TitleBar.ContextMenu is null) return;
+        // Sort items are the (now flat) menu items whose Tag parses to a SortMode.
+        foreach (var obj in TitleBar.ContextMenu.Items)
+            if (obj is MenuItem mi && mi.Tag is string tag && Enum.TryParse<SortMode>(tag, out var m))
+                mi.IsChecked = m == _pool.SortMode;
     }
 
     // ---- Hide until hover -------------------------------------------------
@@ -322,14 +326,21 @@ public partial class PoolWindow : Window
         {
             // Dragging width chooses the column count; height always fits the tiles.
             ApplyAutoSnap(width);
+            return;
         }
-        else
+
+        if (_pool.MagneticSnap)
         {
-            _pool.Width = Math.Max(MinWidth_, width);
-            _pool.Height = Math.Max(MinHeight_, height);
-            Width = _pool.Width;
-            Height = _pool.Height;
+            // Free resize, but each edge magnetically snaps to even padding when
+            // close — keeping whatever column/row count the user is dragging toward.
+            width = GridSizer.MagneticSnap(width, CellW, BodyPad, SnapRange);
+            height = GridSizer.MagneticSnap(height, CellH, TitleHeight + BodyPad, SnapRange);
         }
+
+        _pool.Width = Math.Max(MinWidth_, width);
+        _pool.Height = Math.Max(MinHeight_, height);
+        Width = _pool.Width;
+        Height = _pool.Height;
     }
 
     /// <summary>
@@ -348,9 +359,20 @@ public partial class PoolWindow : Window
     private void AutoSnap_Click(object sender, RoutedEventArgs e)
     {
         _pool.AutoSnap = !_pool.AutoSnap;
+        if (_pool.AutoSnap) _pool.MagneticSnap = false; // the two modes are exclusive
         AutoSnapMenuItem.IsChecked = _pool.AutoSnap;
+        MagneticSnapMenuItem.IsChecked = _pool.MagneticSnap;
         if (_pool.AutoSnap) ApplyAutoSnap(_pool.Width); // tidy up immediately
         UpdateScreenRect();
+        _manager.Save();
+    }
+
+    private void MagneticSnap_Click(object sender, RoutedEventArgs e)
+    {
+        _pool.MagneticSnap = !_pool.MagneticSnap;
+        if (_pool.MagneticSnap) _pool.AutoSnap = false; // the two modes are exclusive
+        MagneticSnapMenuItem.IsChecked = _pool.MagneticSnap;
+        AutoSnapMenuItem.IsChecked = _pool.AutoSnap;
         _manager.Save();
     }
 

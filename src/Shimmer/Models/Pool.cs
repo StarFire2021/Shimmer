@@ -33,6 +33,13 @@ public sealed class Pool
     /// <summary>When true, resizing snaps to whole icon cells and the pool auto-fits its tiles.</summary>
     public bool AutoSnap { get; set; }
 
+    /// <summary>
+    /// When true, resizing is free-form but magnetically snaps an edge to even
+    /// padding when it comes within range, keeping the user's column/row count.
+    /// Mutually exclusive with <see cref="AutoSnap"/>.
+    /// </summary>
+    public bool MagneticSnap { get; set; }
+
     /// <summary>Full paths of the desktop items that belong to this pool.</summary>
     public List<string> MemberPaths { get; set; } = new();
 

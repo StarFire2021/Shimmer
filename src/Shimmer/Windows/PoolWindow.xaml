@@ -29,14 +29,16 @@
                               IsCheckable="True" Click="AutoHide_Click" />
                     <MenuItem x:Name="AutoSnapMenuItem" Header="Auto-size to icon grid"
                               IsCheckable="True" Click="AutoSnap_Click" />
+                    <MenuItem x:Name="MagneticSnapMenuItem" Header="Snap edges to even padding"
+                              IsCheckable="True" Click="MagneticSnap_Click" />
                     <Separator />
-                    <MenuItem x:Name="SortMenu" Header="Sort by">
-                        <MenuItem Header="Manual (drag to arrange)" Tag="Manual" IsCheckable="True" Click="Sort_Click" />
-                        <MenuItem Header="Name" Tag="Name" IsCheckable="True" Click="Sort_Click" />
-                        <MenuItem Header="Type" Tag="Type" IsCheckable="True" Click="Sort_Click" />
-                        <MenuItem Header="Date modified" Tag="DateModified" IsCheckable="True" Click="Sort_Click" />
-                        <MenuItem Header="Recently used" Tag="RecentlyUsed" IsCheckable="True" Click="Sort_Click" />
-                    </MenuItem>
+                    <!-- Sort options flattened into the main menu (no submenu to navigate) -->
+                    <MenuItem Header="Sort by" IsEnabled="False" />
+                    <MenuItem Header="Manual (drag to arrange)" Tag="Manual" IsCheckable="True" Click="Sort_Click" />
+                    <MenuItem Header="Name" Tag="Name" IsCheckable="True" Click="Sort_Click" />
+                    <MenuItem Header="Type" Tag="Type" IsCheckable="True" Click="Sort_Click" />
+                    <MenuItem Header="Date modified" Tag="DateModified" IsCheckable="True" Click="Sort_Click" />
+                    <MenuItem Header="Recently used" Tag="RecentlyUsed" IsCheckable="True" Click="Sort_Click" />
                     <Separator />
                     <MenuItem Header="Appearance…" Click="Appearance_Click" />
                     <MenuItem Header="Rename…" Click="Rename_Click" />
