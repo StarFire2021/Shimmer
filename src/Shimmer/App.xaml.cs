@@ -191,13 +191,13 @@ public partial class App : System.Windows.Application, IDesktopCoordinator
     }
 
     /// <summary>
-    /// The "Apply to all pools" submenu: each choice sets the global default and
-    /// applies it to every pool. Check marks reflect the current global setting
-    /// (refreshed when the submenu opens).
+    /// The "Global Settings" submenu: each choice sets the global default and
+    /// applies it to every (unlocked) pool. Check marks reflect the current global
+    /// setting (refreshed when the submenu opens).
     /// </summary>
     private Forms.ToolStripMenuItem BuildAllPoolsMenu()
     {
-        var root = new Forms.ToolStripMenuItem("Apply to all pools");
+        var root = new Forms.ToolStripMenuItem("Global Settings");
 
         // Sort
         var sort = new Forms.ToolStripMenuItem("Sort by");
