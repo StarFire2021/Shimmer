@@ -48,6 +48,8 @@
                     </MenuItem>
                     <Separator />
                     <MenuItem Header="Appearance…" Click="Appearance_Click" />
+                    <MenuItem x:Name="LockMenuItem" Header="Lock settings (ignore global)"
+                              IsCheckable="True" Click="Lock_Click" />
                     <MenuItem Header="Rename…" Click="Rename_Click" />
                     <MenuItem Header="Delete pool" Click="Delete_Click" />
                 </ContextMenu>

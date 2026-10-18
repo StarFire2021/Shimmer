@@ -100,6 +100,7 @@ public partial class PoolWindow : Window
         AutoSnapMenuItem.IsChecked = _pool.AutoSnap;
         MagneticSnapMenuItem.IsChecked = _pool.MagneticSnap;
         ShowMenuButtonMenuItem.IsChecked = _pool.ShowMenuButton;
+        LockMenuItem.IsChecked = _pool.Locked;
         MenuButton.Visibility = _pool.ShowMenuButton ? Visibility.Visible : Visibility.Collapsed;
         UpdateTitleAlign();
         UpdateTitleAlignChecks();
@@ -245,6 +246,13 @@ public partial class PoolWindow : Window
         menu.PlacementTarget = MenuButton;
         menu.Placement = PlacementMode.Bottom;
         menu.IsOpen = true;
+    }
+
+    private void Lock_Click(object sender, RoutedEventArgs e)
+    {
+        _pool.Locked = !_pool.Locked;
+        LockMenuItem.IsChecked = _pool.Locked;
+        _manager.Save();
     }
 
     // ---- Hide until hover -------------------------------------------------
@@ -527,7 +535,7 @@ public partial class PoolWindow : Window
         return okPressed ? box.Text : null;
     }
 
-    private static bool ShowAppearanceDialog(string initialColor, double initialOpacity,
+    internal static bool ShowAppearanceDialog(string initialColor, double initialOpacity,
         out string color, out double opacity)
     {
         color = initialColor;

@@ -46,6 +46,9 @@ public sealed class Pool
     /// <summary>When true, a hamburger menu button is shown at the left of the title bar.</summary>
     public bool ShowMenuButton { get; set; }
 
+    /// <summary>When true, this pool opts out of "apply to all pools" global changes.</summary>
+    public bool Locked { get; set; }
+
     /// <summary>Full paths of the desktop items that belong to this pool.</summary>
     public List<string> MemberPaths { get; set; } = new();
 

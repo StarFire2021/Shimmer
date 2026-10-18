@@ -243,6 +243,23 @@ public partial class App : System.Windows.Application, IDesktopCoordinator
         snap.DropDownItems.AddRange(new Forms.ToolStripItem[] { snapNone, snapAuto, snapMag });
         root.DropDownItems.Add(snap);
 
+        // Appearance (opens the color/opacity picker, applies to all pools)
+        root.DropDownItems.Add("Appearance…", null, (_, _) =>
+        {
+            if (PoolWindow.ShowAppearanceDialog(_global.Color, _global.Opacity, out var color, out var opacity))
+            {
+                _global.Color = color;
+                _global.Opacity = opacity;
+                ApplyToAllPools(p => { p.Color = color; p.Opacity = opacity; });
+            }
+        });
+
+        root.DropDownItems.Add(new Forms.ToolStripSeparator());
+
+        // Roll-up is a bulk command (not a stored default).
+        root.DropDownItems.Add("Roll all up", null, (_, _) => ApplyToAllPools(p => p.RolledUp = true));
+        root.DropDownItems.Add("Roll all down", null, (_, _) => ApplyToAllPools(p => p.RolledUp = false));
+
         root.DropDownItems.Add(new Forms.ToolStripSeparator());
 
         // Toggles
@@ -338,7 +355,8 @@ public partial class App : System.Windows.Application, IDesktopCoordinator
     /// is touched, so other per-pool customizations are left alone.</summary>
     private void ApplyToAllPools(Action<Pool> set)
     {
-        foreach (var p in _manager.Pools) set(p);
+        foreach (var p in _manager.Pools)
+            if (!p.Locked) set(p); // locked pools opt out of global changes
         _manager.Save();
         _globalStore.Save(_global);
         RecreatePoolWindows();

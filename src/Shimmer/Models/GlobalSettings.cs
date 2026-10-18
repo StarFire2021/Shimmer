@@ -13,8 +13,14 @@ public sealed class GlobalSettings
     public bool MagneticSnap { get; set; }
     public bool ShowMenuButton { get; set; }
     public bool AutoHide { get; set; }
+    public string Color { get; set; } = "#3A6EA5";
+    public double Opacity { get; set; } = 0.5;
 
-    /// <summary>Copy these defaults onto a pool.</summary>
+    /// <summary>
+    /// Copy these defaults onto a pool (used for new pools). Roll-up is
+    /// intentionally excluded — it's a transient state, offered only as a bulk
+    /// "roll all up/down" command, never a new-pool default.
+    /// </summary>
     public void ApplyTo(Pool pool)
     {
         pool.SortMode = SortMode;
@@ -23,5 +29,7 @@ public sealed class GlobalSettings
         pool.MagneticSnap = MagneticSnap;
         pool.ShowMenuButton = ShowMenuButton;
         pool.AutoHide = AutoHide;
+        pool.Color = Color;
+        pool.Opacity = Opacity;
     }
 }

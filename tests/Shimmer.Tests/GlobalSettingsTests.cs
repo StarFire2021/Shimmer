@@ -31,6 +31,8 @@ public class GlobalSettingsTests : IDisposable
             MagneticSnap = false,
             ShowMenuButton = true,
             AutoHide = true,
+            Color = "#112233",
+            Opacity = 0.75,
         };
         var pool = new Pool();
 
@@ -42,6 +44,20 @@ public class GlobalSettingsTests : IDisposable
         Assert.False(pool.MagneticSnap);
         Assert.True(pool.ShowMenuButton);
         Assert.True(pool.AutoHide);
+        Assert.Equal("#112233", pool.Color);
+        Assert.Equal(0.75, pool.Opacity);
+    }
+
+    [Fact]
+    public void ApplyTo_DoesNotTouchRollUpOrLock()
+    {
+        var g = new GlobalSettings();
+        var pool = new Pool { RolledUp = true, Locked = true };
+
+        g.ApplyTo(pool);
+
+        Assert.True(pool.RolledUp); // roll-up is a transient state, never a default
+        Assert.True(pool.Locked);   // lock is per-pool only
     }
 
     [Fact]
