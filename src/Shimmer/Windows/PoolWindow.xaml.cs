@@ -43,6 +43,7 @@ public partial class PoolWindow : Window
     private readonly IntPtr _looseHwnd;
     private readonly DispatcherTimer _hoverTimer;
     private Rect _screenRectPx;
+    private bool _closed;
 
     public Pool Pool => _pool;
 
@@ -90,6 +91,15 @@ public partial class PoolWindow : Window
             Marshal.StructureToPtr(wp, lParam, false);
         }
         return IntPtr.Zero;
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        // Stop the hover timer so it can't set Visibility on a closed window
+        // (e.g. when windows are recreated after an "apply to all pools" change).
+        _closed = true;
+        _hoverTimer.Stop();
+        base.OnClosed(e);
     }
 
     private void PoolWindow_Loaded(object sender, RoutedEventArgs e)
@@ -278,7 +288,7 @@ public partial class PoolWindow : Window
 
     private void HoverTimer_Tick(object? sender, EventArgs e)
     {
-        if (!_pool.AutoHide) { _hoverTimer.Stop(); return; }
+        if (_closed || !_pool.AutoHide) { _hoverTimer.Stop(); return; }
 
         // Stay visible while the context menu is open, even though navigating into
         // a submenu moves the cursor off the pool's rectangle.
