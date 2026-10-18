@@ -21,6 +21,8 @@ public partial class App : System.Windows.Application, IDesktopCoordinator
     private Forms.NotifyIcon _tray = null!;
     private LooseStore _looseStore = null!;
     private UsageStore _usage = null!;
+    private GlobalStore _globalStore = null!;
+    private GlobalSettings _global = new();
     private PoolManager _manager = null!;
     private LooseLayerWindow? _looseLayer;
     private readonly List<PoolWindow> _poolWindows = new();
@@ -39,6 +41,8 @@ public partial class App : System.Windows.Application, IDesktopCoordinator
 
         _looseStore = new LooseStore();
         _usage = new UsageStore();
+        _globalStore = new GlobalStore();
+        _global = _globalStore.Load();
         _manager = new PoolManager(new PoolStore());
         SetupTray();
 
@@ -160,6 +164,8 @@ public partial class App : System.Windows.Application, IDesktopCoordinator
     {
         var menu = new Forms.ContextMenuStrip();
         menu.Items.Add("New pool", null, (_, _) => NewPool());
+        menu.Items.Add(BuildAllPoolsMenu());
+        menu.Items.Add(new Forms.ToolStripSeparator());
         menu.Items.Add("Rescan desktop", null, (_, _) => Rescan());
         menu.Items.Add("Show/hide real desktop icons", null, (_, _) => ToggleRealIcons());
 
@@ -182,6 +188,89 @@ public partial class App : System.Windows.Application, IDesktopCoordinator
             ContextMenuStrip = menu,
         };
         _tray.DoubleClick += (_, _) => NewPool();
+    }
+
+    /// <summary>
+    /// The "Apply to all pools" submenu: each choice sets the global default and
+    /// applies it to every pool. Check marks reflect the current global setting
+    /// (refreshed when the submenu opens).
+    /// </summary>
+    private Forms.ToolStripMenuItem BuildAllPoolsMenu()
+    {
+        var root = new Forms.ToolStripMenuItem("Apply to all pools");
+
+        // Sort
+        var sort = new Forms.ToolStripMenuItem("Sort by");
+        foreach (var (label, mode) in new (string, SortMode)[]
+        {
+            ("Manual (drag to arrange)", SortMode.Manual), ("Name", SortMode.Name),
+            ("Type", SortMode.Type), ("Date modified", SortMode.DateModified),
+            ("Recently used", SortMode.RecentlyUsed),
+        })
+        {
+            var m = mode;
+            var it = new Forms.ToolStripMenuItem(label) { Tag = mode };
+            it.Click += (_, _) => { _global.SortMode = m; ApplyToAllPools(p => p.SortMode = m); };
+            sort.DropDownItems.Add(it);
+        }
+        root.DropDownItems.Add(sort);
+
+        // Title alignment
+        var title = new Forms.ToolStripMenuItem("Title alignment");
+        foreach (var (label, align) in new (string, TitleAlign)[]
+        {
+            ("Left", TitleAlign.Left), ("Center", TitleAlign.Center), ("Right", TitleAlign.Right),
+        })
+        {
+            var a = align;
+            var it = new Forms.ToolStripMenuItem(label) { Tag = align };
+            it.Click += (_, _) => { _global.TitleAlign = a; ApplyToAllPools(p => p.TitleAlign = a); };
+            title.DropDownItems.Add(it);
+        }
+        root.DropDownItems.Add(title);
+
+        // Snapping (mutually exclusive)
+        var snap = new Forms.ToolStripMenuItem("Snapping");
+        var snapNone = new Forms.ToolStripMenuItem("None");
+        snapNone.Click += (_, _) => { _global.AutoSnap = false; _global.MagneticSnap = false;
+            ApplyToAllPools(p => { p.AutoSnap = false; p.MagneticSnap = false; }); };
+        var snapAuto = new Forms.ToolStripMenuItem("Auto-size to icon grid");
+        snapAuto.Click += (_, _) => { _global.AutoSnap = true; _global.MagneticSnap = false;
+            ApplyToAllPools(p => { p.AutoSnap = true; p.MagneticSnap = false; }); };
+        var snapMag = new Forms.ToolStripMenuItem("Snap edges to even padding");
+        snapMag.Click += (_, _) => { _global.MagneticSnap = true; _global.AutoSnap = false;
+            ApplyToAllPools(p => { p.MagneticSnap = true; p.AutoSnap = false; }); };
+        snap.DropDownItems.AddRange(new Forms.ToolStripItem[] { snapNone, snapAuto, snapMag });
+        root.DropDownItems.Add(snap);
+
+        root.DropDownItems.Add(new Forms.ToolStripSeparator());
+
+        // Toggles
+        var menuBtn = new Forms.ToolStripMenuItem("Show menu button") { CheckOnClick = true };
+        menuBtn.Click += (_, _) => { _global.ShowMenuButton = menuBtn.Checked;
+            ApplyToAllPools(p => p.ShowMenuButton = _global.ShowMenuButton); };
+        root.DropDownItems.Add(menuBtn);
+
+        var hideHover = new Forms.ToolStripMenuItem("Hide until hover") { CheckOnClick = true };
+        hideHover.Click += (_, _) => { _global.AutoHide = hideHover.Checked;
+            ApplyToAllPools(p => p.AutoHide = _global.AutoHide); };
+        root.DropDownItems.Add(hideHover);
+
+        // Reflect current global settings whenever the submenu opens.
+        root.DropDownOpening += (_, _) =>
+        {
+            foreach (Forms.ToolStripItem i in sort.DropDownItems)
+                if (i is Forms.ToolStripMenuItem mi && mi.Tag is SortMode sm) mi.Checked = sm == _global.SortMode;
+            foreach (Forms.ToolStripItem i in title.DropDownItems)
+                if (i is Forms.ToolStripMenuItem mi && mi.Tag is TitleAlign ta) mi.Checked = ta == _global.TitleAlign;
+            snapNone.Checked = !_global.AutoSnap && !_global.MagneticSnap;
+            snapAuto.Checked = _global.AutoSnap;
+            snapMag.Checked = _global.MagneticSnap;
+            menuBtn.Checked = _global.ShowMenuButton;
+            hideHover.Checked = _global.AutoHide;
+        };
+
+        return root;
     }
 
     private static Drawing.Icon LoadTrayIcon()
@@ -233,9 +322,40 @@ public partial class App : System.Windows.Application, IDesktopCoordinator
         double top = area.Top + 80 + _poolWindows.Count * 24;
 
         var pool = _manager.CreatePool(left, top, 320, 240);
+        _global.ApplyTo(pool); // new pools inherit the global defaults
+        _manager.Save();
+
         var pw = new PoolWindow(pool, _manager, this, LooseHandle());
         _poolWindows.Add(pw);
         pw.Show();
+        ReorderZ();
+    }
+
+    // ---- Global (all-pool) settings --------------------------------------
+
+    /// <summary>Apply a single property change to every pool and persist, then
+    /// re-render the pool windows so it shows immediately. Only the given property
+    /// is touched, so other per-pool customizations are left alone.</summary>
+    private void ApplyToAllPools(Action<Pool> set)
+    {
+        foreach (var p in _manager.Pools) set(p);
+        _manager.Save();
+        _globalStore.Save(_global);
+        RecreatePoolWindows();
+    }
+
+    private void RecreatePoolWindows()
+    {
+        if (!_iconsHidden) return;
+        IntPtr looseHwnd = LooseHandle();
+        foreach (var pw in _poolWindows.ToList()) pw.Close();
+        _poolWindows.Clear();
+        foreach (var pool in _manager.Pools.ToList())
+        {
+            var pw = new PoolWindow(pool, _manager, this, looseHwnd);
+            _poolWindows.Add(pw);
+            pw.Show();
+        }
         ReorderZ();
     }
 
