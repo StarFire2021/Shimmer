@@ -33,6 +33,8 @@
                               IsCheckable="True" Click="MagneticSnap_Click" />
                     <MenuItem x:Name="ShowMenuButtonMenuItem" Header="Show menu button"
                               IsCheckable="True" Click="ShowMenuButton_Click" />
+                    <MenuItem x:Name="TileBgMenuItem" Header="Show icon backgrounds"
+                              IsCheckable="True" Click="TileBg_Click" />
                     <Separator />
                     <MenuItem x:Name="SortMenu" Header="Sort by">
                         <MenuItem Header="Manual (drag to arrange)" Tag="Manual" IsCheckable="True" Click="Sort_Click" />

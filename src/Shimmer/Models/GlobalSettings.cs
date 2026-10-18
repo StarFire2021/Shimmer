@@ -13,6 +13,7 @@ public sealed class GlobalSettings
     public bool MagneticSnap { get; set; }
     public bool ShowMenuButton { get; set; }
     public bool AutoHide { get; set; }
+    public bool ShowTileBackground { get; set; } = true;
     public string Color { get; set; } = "#3A6EA5";
     public double Opacity { get; set; } = 0.5;
 
@@ -29,6 +30,7 @@ public sealed class GlobalSettings
         pool.MagneticSnap = MagneticSnap;
         pool.ShowMenuButton = ShowMenuButton;
         pool.AutoHide = AutoHide;
+        pool.ShowTileBackground = ShowTileBackground;
         pool.Color = Color;
         pool.Opacity = Opacity;
     }

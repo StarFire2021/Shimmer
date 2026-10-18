@@ -46,6 +46,9 @@ public sealed class Pool
     /// <summary>When true, a hamburger menu button is shown at the left of the title bar.</summary>
     public bool ShowMenuButton { get; set; }
 
+    /// <summary>When true, each tile shows its square background always; when false, only on hover.</summary>
+    public bool ShowTileBackground { get; set; } = true;
+
     /// <summary>When true, this pool opts out of "apply to all pools" global changes.</summary>
     public bool Locked { get; set; }
 

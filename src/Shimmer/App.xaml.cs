@@ -108,6 +108,8 @@ public partial class App : System.Windows.Application, IDesktopCoordinator
     public IEnumerable<DesktopItem> LooseItems() =>
         _items.Values.Where(i => !_manager.IsPooled(i.Path));
 
+    public bool LooseTileBackground => _global.ShowTileBackground;
+
     public IEnumerable<DesktopItem> MembersOf(Pool pool)
     {
         var ordered = new List<DesktopItem>(pool.MemberPaths.Count);
@@ -273,6 +275,11 @@ public partial class App : System.Windows.Application, IDesktopCoordinator
             ApplyToAllPools(p => p.AutoHide = _global.AutoHide); };
         root.DropDownItems.Add(hideHover);
 
+        var tileBg = new Forms.ToolStripMenuItem("Show icon backgrounds") { CheckOnClick = true };
+        tileBg.Click += (_, _) => { _global.ShowTileBackground = tileBg.Checked;
+            ApplyToAllPools(p => p.ShowTileBackground = _global.ShowTileBackground); };
+        root.DropDownItems.Add(tileBg);
+
         // Reflect current global settings whenever the submenu opens.
         root.DropDownOpening += (_, _) =>
         {
@@ -285,6 +292,7 @@ public partial class App : System.Windows.Application, IDesktopCoordinator
             snapMag.Checked = _global.MagneticSnap;
             menuBtn.Checked = _global.ShowMenuButton;
             hideHover.Checked = _global.AutoHide;
+            tileBg.Checked = _global.ShowTileBackground;
         };
 
         return root;
@@ -374,6 +382,7 @@ public partial class App : System.Windows.Application, IDesktopCoordinator
             _poolWindows.Add(pw);
             pw.Show();
         }
+        _looseLayer?.Rebuild(); // loose tiles pick up a global tile-background change
         ReorderZ();
     }
 

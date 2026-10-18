@@ -99,7 +99,7 @@ public partial class LooseLayerWindow : Window
 
         foreach (var item in _coord.LooseItems())
         {
-            var tile = new DesktopTile(item, _coord);
+            var tile = new DesktopTile(item, _coord, _coord.LooseTileBackground);
 
             if (_store.TryGet(item.Path, out var pos))
             {

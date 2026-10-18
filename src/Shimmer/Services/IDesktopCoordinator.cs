@@ -12,6 +12,9 @@ public interface IDesktopCoordinator
     /// <summary>Items not currently in any pool.</summary>
     IEnumerable<DesktopItem> LooseItems();
 
+    /// <summary>Whether loose (un-pooled) tiles show their square background (global default).</summary>
+    bool LooseTileBackground { get; }
+
     /// <summary>Items belonging to a given pool (in membership order).</summary>
     IEnumerable<DesktopItem> MembersOf(Pool pool);
 

@@ -31,6 +31,7 @@ public class GlobalSettingsTests : IDisposable
             MagneticSnap = false,
             ShowMenuButton = true,
             AutoHide = true,
+            ShowTileBackground = false,
             Color = "#112233",
             Opacity = 0.75,
         };
@@ -44,6 +45,7 @@ public class GlobalSettingsTests : IDisposable
         Assert.False(pool.MagneticSnap);
         Assert.True(pool.ShowMenuButton);
         Assert.True(pool.AutoHide);
+        Assert.False(pool.ShowTileBackground);
         Assert.Equal("#112233", pool.Color);
         Assert.Equal(0.75, pool.Opacity);
     }

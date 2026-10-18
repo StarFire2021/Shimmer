@@ -24,19 +24,29 @@ public sealed class DesktopTile : Border
 {
     public DesktopItem Item { get; }
     private readonly IDesktopCoordinator _coord;
+    private readonly Brush _restBrush;
+    private readonly Brush _hoverBrush;
 
     private Point _dragStart;
     private bool _armed;
     private DragGhost? _ghost;
 
-    public DesktopTile(DesktopItem item, IDesktopCoordinator coord)
+    public DesktopTile(DesktopItem item, IDesktopCoordinator coord, bool showBackground = true)
     {
         Item = item;
         _coord = coord;
 
+        // The square must stay hit-testable (alpha > 0) even when "invisible", so
+        // clicks/drag still register. showBackground -> visible at rest; otherwise
+        // nearly transparent at rest and only shows on hover (cleaner, Fences-like).
+        byte restAlpha = showBackground ? (byte)0x33 : (byte)0x01;
+        byte hoverAlpha = showBackground ? (byte)0x4D : (byte)0x33;
+        _restBrush = new SolidColorBrush(Color.FromArgb(restAlpha, 0, 0, 0));
+        _hoverBrush = new SolidColorBrush(Color.FromArgb(hoverAlpha, 0, 0, 0));
+
         Width = 84;
         Height = 88; // fixed so cells are uniform (enables snap-to-grid sizing)
-        Background = new SolidColorBrush(Color.FromArgb(0x33, 0, 0, 0)); // subtle + hittable
+        Background = _restBrush;
         CornerRadius = new CornerRadius(8);
         Padding = new Thickness(6, 8, 6, 6);
         Margin = new Thickness(4);
@@ -121,6 +131,18 @@ public sealed class DesktopTile : Border
     {
         base.OnMouseLeftButtonUp(e);
         _armed = false;
+    }
+
+    protected override void OnMouseEnter(MouseEventArgs e)
+    {
+        base.OnMouseEnter(e);
+        Background = _hoverBrush;
+    }
+
+    protected override void OnMouseLeave(MouseEventArgs e)
+    {
+        base.OnMouseLeave(e);
+        Background = _restBrush;
     }
 
     protected override void OnMouseRightButtonUp(MouseButtonEventArgs e)

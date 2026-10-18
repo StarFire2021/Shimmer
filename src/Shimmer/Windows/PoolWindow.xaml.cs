@@ -110,6 +110,7 @@ public partial class PoolWindow : Window
         AutoSnapMenuItem.IsChecked = _pool.AutoSnap;
         MagneticSnapMenuItem.IsChecked = _pool.MagneticSnap;
         ShowMenuButtonMenuItem.IsChecked = _pool.ShowMenuButton;
+        TileBgMenuItem.IsChecked = _pool.ShowTileBackground;
         LockMenuItem.IsChecked = _pool.Locked;
         MenuButton.Visibility = _pool.ShowMenuButton ? Visibility.Visible : Visibility.Collapsed;
         UpdateTitleAlign();
@@ -136,7 +137,7 @@ public partial class PoolWindow : Window
     {
         Tiles.Children.Clear();
         foreach (var item in _coord.MembersOf(_pool))
-            Tiles.Children.Add(new DesktopTile(item, _coord));
+            Tiles.Children.Add(new DesktopTile(item, _coord, _pool.ShowTileBackground));
 
         if (_pool.AutoSnap) ApplyAutoSnap(_pool.Width);
     }
@@ -263,6 +264,14 @@ public partial class PoolWindow : Window
         _pool.Locked = !_pool.Locked;
         LockMenuItem.IsChecked = _pool.Locked;
         _manager.Save();
+    }
+
+    private void TileBg_Click(object sender, RoutedEventArgs e)
+    {
+        _pool.ShowTileBackground = !_pool.ShowTileBackground;
+        TileBgMenuItem.IsChecked = _pool.ShowTileBackground;
+        _manager.Save();
+        Rebuild(); // recreate tiles with the new background setting
     }
 
     // ---- Hide until hover -------------------------------------------------
