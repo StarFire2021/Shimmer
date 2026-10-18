@@ -99,6 +99,10 @@ public partial class PoolWindow : Window
         AutoHideMenuItem.IsChecked = _pool.AutoHide;
         AutoSnapMenuItem.IsChecked = _pool.AutoSnap;
         MagneticSnapMenuItem.IsChecked = _pool.MagneticSnap;
+        ShowMenuButtonMenuItem.IsChecked = _pool.ShowMenuButton;
+        MenuButton.Visibility = _pool.ShowMenuButton ? Visibility.Visible : Visibility.Collapsed;
+        UpdateTitleAlign();
+        UpdateTitleAlignChecks();
         ApplyRolled();
         UpdateSortChecks();
         UpdateScreenRect();
@@ -194,6 +198,53 @@ public partial class PoolWindow : Window
         foreach (var obj in SortMenu.Items)
             if (obj is MenuItem mi && mi.Tag is string tag && Enum.TryParse<SortMode>(tag, out var m))
                 mi.IsChecked = m == _pool.SortMode;
+    }
+
+    // ---- Title alignment + menu button -----------------------------------
+
+    private void TitleAlign_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuItem mi && mi.Tag is string tag && Enum.TryParse<TitleAlign>(tag, out var a))
+        {
+            _pool.TitleAlign = a;
+            UpdateTitleAlign();
+            UpdateTitleAlignChecks();
+            _manager.Save();
+        }
+    }
+
+    private void UpdateTitleAlign()
+    {
+        TitleText.TextAlignment = _pool.TitleAlign switch
+        {
+            TitleAlign.Center => TextAlignment.Center,
+            TitleAlign.Right => TextAlignment.Right,
+            _ => TextAlignment.Left,
+        };
+    }
+
+    private void UpdateTitleAlignChecks()
+    {
+        foreach (var obj in TitleAlignMenu.Items)
+            if (obj is MenuItem mi && mi.Tag is string tag && Enum.TryParse<TitleAlign>(tag, out var a))
+                mi.IsChecked = a == _pool.TitleAlign;
+    }
+
+    private void ShowMenuButton_Click(object sender, RoutedEventArgs e)
+    {
+        _pool.ShowMenuButton = !_pool.ShowMenuButton;
+        ShowMenuButtonMenuItem.IsChecked = _pool.ShowMenuButton;
+        MenuButton.Visibility = _pool.ShowMenuButton ? Visibility.Visible : Visibility.Collapsed;
+        _manager.Save();
+    }
+
+    private void MenuButton_Click(object sender, RoutedEventArgs e)
+    {
+        var menu = TitleBar.ContextMenu;
+        if (menu is null) return;
+        menu.PlacementTarget = MenuButton;
+        menu.Placement = PlacementMode.Bottom;
+        menu.IsOpen = true;
     }
 
     // ---- Hide until hover -------------------------------------------------

@@ -40,6 +40,12 @@ public sealed class Pool
     /// </summary>
     public bool MagneticSnap { get; set; }
 
+    /// <summary>Justification of the title text.</summary>
+    public TitleAlign TitleAlign { get; set; } = TitleAlign.Left;
+
+    /// <summary>When true, a hamburger menu button is shown at the left of the title bar.</summary>
+    public bool ShowMenuButton { get; set; }
+
     /// <summary>Full paths of the desktop items that belong to this pool.</summary>
     public List<string> MemberPaths { get; set; } = new();
 

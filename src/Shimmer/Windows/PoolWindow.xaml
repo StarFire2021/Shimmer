@@ -31,6 +31,8 @@
                               IsCheckable="True" Click="AutoSnap_Click" />
                     <MenuItem x:Name="MagneticSnapMenuItem" Header="Snap edges to even padding"
                               IsCheckable="True" Click="MagneticSnap_Click" />
+                    <MenuItem x:Name="ShowMenuButtonMenuItem" Header="Show menu button"
+                              IsCheckable="True" Click="ShowMenuButton_Click" />
                     <Separator />
                     <MenuItem x:Name="SortMenu" Header="Sort by">
                         <MenuItem Header="Manual (drag to arrange)" Tag="Manual" IsCheckable="True" Click="Sort_Click" />
@@ -38,6 +40,11 @@
                         <MenuItem Header="Type" Tag="Type" IsCheckable="True" Click="Sort_Click" />
                         <MenuItem Header="Date modified" Tag="DateModified" IsCheckable="True" Click="Sort_Click" />
                         <MenuItem Header="Recently used" Tag="RecentlyUsed" IsCheckable="True" Click="Sort_Click" />
+                    </MenuItem>
+                    <MenuItem x:Name="TitleAlignMenu" Header="Title alignment">
+                        <MenuItem Header="Left" Tag="Left" IsCheckable="True" Click="TitleAlign_Click" />
+                        <MenuItem Header="Center" Tag="Center" IsCheckable="True" Click="TitleAlign_Click" />
+                        <MenuItem Header="Right" Tag="Right" IsCheckable="True" Click="TitleAlign_Click" />
                     </MenuItem>
                     <Separator />
                     <MenuItem Header="Appearance…" Click="Appearance_Click" />
@@ -48,13 +55,20 @@
 
             <Grid Margin="14,0,16,0">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBlock x:Name="TitleText" Grid.Column="0" Text="Pool"
+                <Button x:Name="MenuButton" Grid.Column="0" Content="☰"
+                        Width="22" Height="24" Foreground="#F0F3F8"
+                        Background="Transparent" BorderThickness="0"
+                        FontSize="13" Cursor="Hand" ToolTip="Menu"
+                        Visibility="Collapsed" Margin="0,0,4,0"
+                        Click="MenuButton_Click" />
+                <TextBlock x:Name="TitleText" Grid.Column="1" Text="Pool"
                            Foreground="#F0F3F8" FontSize="13" FontWeight="SemiBold"
                            VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
                     <Button x:Name="RollButton" Content="▾"
                             Width="24" Height="24" Foreground="#F0F3F8"
                             Background="Transparent" BorderThickness="0"
@@ -74,8 +88,52 @@
                  from the pool color + opacity. Accepts item drops. -->
             <Border x:Name="Body" CornerRadius="0,0,10,10"
                     AllowDrop="True" Drop="Body_Drop" DragOver="Body_DragOver">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="6"
-                              Background="Transparent">
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              Padding="6" Background="Transparent">
+                    <ScrollViewer.Resources>
+                        <!-- Thin scrollbar that is invisible until the cursor is
+                             directly over its (narrow) area. -->
+                        <Style TargetType="ScrollBar">
+                            <Setter Property="Width" Value="8" />
+                            <Setter Property="MinWidth" Value="8" />
+                            <Setter Property="Background" Value="Transparent" />
+                            <Setter Property="Opacity" Value="0" />
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Opacity" Value="1" />
+                                </Trigger>
+                            </Style.Triggers>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ScrollBar">
+                                        <Grid Background="Transparent">
+                                            <Track Name="PART_Track" IsDirectionReversed="True">
+                                                <Track.DecreaseRepeatButton>
+                                                    <RepeatButton Command="ScrollBar.PageUpCommand"
+                                                                  Opacity="0" Focusable="False" IsTabStop="False" />
+                                                </Track.DecreaseRepeatButton>
+                                                <Track.IncreaseRepeatButton>
+                                                    <RepeatButton Command="ScrollBar.PageDownCommand"
+                                                                  Opacity="0" Focusable="False" IsTabStop="False" />
+                                                </Track.IncreaseRepeatButton>
+                                                <Track.Thumb>
+                                                    <Thumb>
+                                                        <Thumb.Template>
+                                                            <ControlTemplate TargetType="Thumb">
+                                                                <Border CornerRadius="4" Margin="2,0"
+                                                                        Background="#99FFFFFF" />
+                                                            </ControlTemplate>
+                                                        </Thumb.Template>
+                                                    </Thumb>
+                                                </Track.Thumb>
+                                            </Track>
+                                        </Grid>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ScrollViewer.Resources>
                     <WrapPanel x:Name="Tiles" />
                 </ScrollViewer>
             </Border>
