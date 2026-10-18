@@ -23,8 +23,18 @@ namespace Shimmer.Windows;
 public partial class PoolWindow : Window
 {
     private const double TitleHeight = 34;
-    private const double MinWidth_ = 180;
-    private const double MinHeight_ = 130;
+
+    // Tile cell footprint (DesktopTile 84x88 + 4px margin all round) and the
+    // ScrollViewer padding (6px each side), used for snap-to-grid sizing.
+    private const double CellW = 92;
+    private const double CellH = 96;
+    private const double BodyPad = 12;
+
+    // Minimum is exactly one icon cell, so a pool can be a single column/row.
+    private const double MinWidth_ = CellW + BodyPad;              // 104
+    private const double MinHeight_ = TitleHeight + CellH + BodyPad; // 142
+
+    private bool _menuOpen;
 
     private readonly Pool _pool;
     private readonly PoolManager _manager;
@@ -86,6 +96,7 @@ public partial class PoolWindow : Window
         ApplyAppearance();
         Rebuild();
         AutoHideMenuItem.IsChecked = _pool.AutoHide;
+        AutoSnapMenuItem.IsChecked = _pool.AutoSnap;
         ApplyRolled();
         UpdateSortChecks();
         UpdateScreenRect();
@@ -109,6 +120,8 @@ public partial class PoolWindow : Window
         Tiles.Children.Clear();
         foreach (var item in _coord.MembersOf(_pool))
             Tiles.Children.Add(new DesktopTile(item, _coord));
+
+        if (_pool.AutoSnap) ApplyAutoSnap(_pool.Width);
     }
 
     private void ApplyAppearance()
@@ -206,7 +219,9 @@ public partial class PoolWindow : Window
     {
         if (!_pool.AutoHide) { _hoverTimer.Stop(); return; }
 
-        if (CursorInside())
+        // Stay visible while the context menu is open, even though navigating into
+        // a submenu moves the cursor off the pool's rectangle.
+        if (CursorInside() || _menuOpen)
         {
             if (Visibility != Visibility.Visible)
             {
@@ -221,6 +236,10 @@ public partial class PoolWindow : Window
             Visibility = Visibility.Hidden;
         }
     }
+
+    // Pause auto-hide while the right-click menu (and its submenus) are open.
+    private void Menu_Opened(object sender, RoutedEventArgs e) => _menuOpen = true;
+    private void Menu_Closed(object sender, RoutedEventArgs e) => _menuOpen = false;
 
     // ---- Drag to move -----------------------------------------------------
 
@@ -299,10 +318,40 @@ public partial class PoolWindow : Window
 
     private void SetPoolSize(double width, double height)
     {
-        _pool.Width = Math.Max(MinWidth_, width);
-        _pool.Height = Math.Max(MinHeight_, height);
-        Width = _pool.Width;
-        Height = _pool.Height;
+        if (_pool.AutoSnap)
+        {
+            // Dragging width chooses the column count; height always fits the tiles.
+            ApplyAutoSnap(width);
+        }
+        else
+        {
+            _pool.Width = Math.Max(MinWidth_, width);
+            _pool.Height = Math.Max(MinHeight_, height);
+            Width = _pool.Width;
+            Height = _pool.Height;
+        }
+    }
+
+    /// <summary>
+    /// Size the pool to a whole grid of cells with even padding: columns come from
+    /// the proposed width, rows are however many are needed to show every tile.
+    /// </summary>
+    private void ApplyAutoSnap(double proposedWidth)
+    {
+        var (w, h) = GridSizer.Snap(proposedWidth, Tiles.Children.Count, CellW, CellH, BodyPad, TitleHeight);
+        _pool.Width = w;
+        _pool.Height = h;
+        Width = w;
+        if (!_pool.RolledUp) Height = h;
+    }
+
+    private void AutoSnap_Click(object sender, RoutedEventArgs e)
+    {
+        _pool.AutoSnap = !_pool.AutoSnap;
+        AutoSnapMenuItem.IsChecked = _pool.AutoSnap;
+        if (_pool.AutoSnap) ApplyAutoSnap(_pool.Width); // tidy up immediately
+        UpdateScreenRect();
+        _manager.Save();
     }
 
     // ---- Context menu -----------------------------------------------------

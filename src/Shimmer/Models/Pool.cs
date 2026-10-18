@@ -30,6 +30,9 @@ public sealed class Pool
     /// <summary>How member tiles are ordered. Manual = the raw MemberPaths order.</summary>
     public SortMode SortMode { get; set; } = SortMode.Manual;
 
+    /// <summary>When true, resizing snaps to whole icon cells and the pool auto-fits its tiles.</summary>
+    public bool AutoSnap { get; set; }
+
     /// <summary>Full paths of the desktop items that belong to this pool.</summary>
     public List<string> MemberPaths { get; set; } = new();
 

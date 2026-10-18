@@ -22,11 +22,13 @@
                 Background="#CC1E2130" CornerRadius="8,8,0,0"
                 MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
             <Border.ContextMenu>
-                <ContextMenu>
+                <ContextMenu Opened="Menu_Opened" Closed="Menu_Closed">
                     <MenuItem x:Name="RollMenuItem" Header="Roll up"
                               IsCheckable="True" Click="Roll_Click" />
                     <MenuItem x:Name="AutoHideMenuItem" Header="Hide until hover"
                               IsCheckable="True" Click="AutoHide_Click" />
+                    <MenuItem x:Name="AutoSnapMenuItem" Header="Auto-size to icon grid"
+                              IsCheckable="True" Click="AutoSnap_Click" />
                     <Separator />
                     <MenuItem x:Name="SortMenu" Header="Sort by">
                         <MenuItem Header="Manual (drag to arrange)" Tag="Manual" IsCheckable="True" Click="Sort_Click" />

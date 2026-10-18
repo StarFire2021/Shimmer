@@ -35,6 +35,7 @@ public sealed class DesktopTile : Border
         _coord = coord;
 
         Width = 84;
+        Height = 88; // fixed so cells are uniform (enables snap-to-grid sizing)
         Background = new SolidColorBrush(Color.FromArgb(0x33, 0, 0, 0)); // subtle + hittable
         CornerRadius = new CornerRadius(8);
         Padding = new Thickness(6, 8, 6, 6);
